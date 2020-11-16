@@ -46,12 +46,12 @@ abstract contract PowerInvoker {
     modifier revertOwnership {
         _;
         address ownableContract = angband.getAddress(power.domain());
-        Ownable(ownableContract).transferOwnership(msg.sender);
+        Ownable(ownableContract).transferOwnership(address(angband));
     }
 
     function orchestrate() internal virtual returns (bool);
 
-    function invoke(bytes32 minion, address sender) public {
+    function invoke(bytes32 minion, address sender) public revertOwnership{
         require(msg.sender == address(angband),"MORGOTH: angband only");
         require(powers.userMinion(sender, minion), "MORGOTH: Invocation by minions only.");
         require(!invoked, "MORGOTH: Power cannot be invoked.");

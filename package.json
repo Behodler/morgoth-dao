@@ -1,0 +1,30 @@
+{
+  "name": "morgoth-dao",
+  "version": "1.0.0",
+  "description": "Controlling DAO for Behodler Liquidity Protocol",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "compile": "touch build/contracts/horse && rm -rf build/contracts/* && truffle compile",
+    "test": "npm run compile && mocha --exit --recursive",
+    "mocha":"mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WeiDaiEcosystem/morgoth-dao.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/WeiDaiEcosystem/morgoth-dao/issues"
+  },
+  "homepage": "https://github.com/WeiDaiEcosystem/morgoth-dao#readme",
+  "devDependencies": {
+    "@openzeppelin/test-environment": "^0.1.6",
+    "@openzeppelin/test-helpers": "^0.5.9",
+    "chai": "^4.2.0",
+    "mocha": "^8.2.0"
+  }
+}
