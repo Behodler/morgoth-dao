@@ -14,7 +14,7 @@ contract Power {
         transferrable = _transferrable;
         unique = _unique;
     }
-
+    bytes32 public name;
     bytes32 public domain; //Thangorodrim mapping 
     bool public transferrable;
     bool public unique;
@@ -73,6 +73,13 @@ contract Empowered {
     }
 
     modifier requiresPower(bytes32 power) {
+        require(initialized, "MORGOTH: powers not allocated.");
+        require(powersRegistry.userHasPower(power,msg.sender), "MORGOTH: forbidden power");
+        _;
+    }
+
+    modifier requiesPowerOnInvocation(address invoker) {
+        bytes32 power = PowerInvoker(invoker).power().name();
         require(initialized, "MORGOTH: powers not allocated.");
         require(powersRegistry.userHasPower(power,msg.sender), "MORGOTH: forbidden power");
         _;
