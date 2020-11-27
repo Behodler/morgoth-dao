@@ -17,13 +17,13 @@ contract AddTokenToBehodlerPower is PowerInvoker{
     address token;
     bool burnable;
 
-    constructor (address _token, bool _burnable, address _power, address _angband) PowerInvoker(_power,_angband) {
+    constructor (address _token, bool _burnable, bytes32 _power, address _angband) PowerInvoker(_power,_angband) {
         token = _token;
         burnable = _burnable;
     }
 
     function orchestrate() internal override returns (bool) {
-        address _lachesis = angband.getAddress(power.domain());
+        address _lachesis = angband.getAddress(power.domain);
         Lachesis lachesis = Lachesis(_lachesis);
         lachesis.measure(token,true,burnable);
         lachesis.updateBehodler(token);

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.1;
+import "../contracts/Powers.sol";
 
 interface BurnableERC20 {
     function transfer (address recipient, uint value) external returns (bool);
@@ -7,9 +8,8 @@ interface BurnableERC20 {
     function burn (uint amount) external;
 }
 
-import "../contracts/Powers.sol";
 contract IronCrown is Empowered {   
-    Powers powers;
+    PowerRegistry powerRegistry;
     BurnableERC20 scx;
     struct Silmaril {
         uint16 percentage; //0-1000
@@ -24,7 +24,7 @@ contract IronCrown is Empowered {
     Silmaril[4] silmarils; 
 
     constructor (address _powers, address _scx) {
-        powers = Powers(_powers);
+        powerRegistry = PowerRegistry(_powers);
         scx = BurnableERC20(_scx);
     }
 
@@ -38,17 +38,18 @@ contract IronCrown is Empowered {
         }
     }
 
-    function setSilmaril (uint8 index, uint8 percentage, address exit) external requiresPower(powers.INSERT_SILMARIL()) {
+    function setSilmaril (uint8 index, uint8 percentage, address exit) external requiresPower(powerRegistry.INSERT_SILMARIL()) {
         require(index<3, "MORGOTH: index out of bounds");
         settlePayments();
         silmarils[index].percentage = percentage;
+        require(silmarils[0].percentage + silmarils[1].percentage + silmarils[2].percentage + silmarils[3].percentage <=1000,"MORGOTH: percentage exceeds 100%");
         silmarils[index].exit = exit;
     }
 
     function transferOrBurn(uint8 index, uint amount) internal {
         if(index == burn)
-        scx.burn(amount);
+            scx.burn(amount);
         else 
-        scx.transfer(silmarils[index].exit,amount);
+            scx.transfer(silmarils[index].exit,amount);
     }
 }

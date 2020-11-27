@@ -6,25 +6,31 @@ import "./openzeppelin/Ownable.sol";
 
 contract Angband is Empowered, Thangorodrim {
     event EmergencyShutdownTriggered(address newOwner);
-    Powers powers;
+    PowerRegistry powers;
     uint emergencyCoolDownPeriod;
     address deployer; 
+    mapping (address=>bool) public authorizedInvokers;
     constructor (address _powers) {
-        powers = Powers (_powers);
-        _setAddress("POWERS",_powers);
+        powers = PowerRegistry (_powers);
+        _setAddress("POWERREGISTRY",_powers);
         deployer = msg.sender;
         emergencyCoolDownPeriod = block.timestamp + 66 days;
     }
 
     modifier ensureOwnershipReturned (address powerInvoker) {
         _;
-        address ownable = getAddress(PowerInvoker(powerInvoker).power().domain());
+        (,bytes32 domain,,) =  PowerInvoker(powerInvoker).power();
+        address ownable = getAddress(domain);
         require(Ownable(ownable).owner()==address(this), "MORGOTH: power invoker failed to return ownership");
     }
 
-    function setPowers(address _powers) public requiresPower(powers.WIRE_ANGBAND()) {
-         powers = Powers (_powers);
-        _setAddress(POWERS,_powers);
+    function authorizeInvoker (address invoker, bool authorized) public requiresPower(powers.AUTHORIZE_INVOKER()){
+        authorizedInvokers[invoker] = authorized;
+    }
+
+    function setPowerRegistry(address _powers) public requiresPower(powers.WIRE_ANGBAND()) {
+         powers = PowerRegistry (_powers);
+        _setAddress(POWERREGISTRY,_powers);
     }
 
     function setBehodler (address behodler, address lachesis) public requiresPower(powers.POINT_TO_BEHODLER()){
@@ -32,7 +38,8 @@ contract Angband is Empowered, Thangorodrim {
         _setAddress(LACHESIS,lachesis);
     }
 
-    function executePower(address powerInvoker, bytes32 minion) public ensureOwnershipReturned(powerInvoker) requiesPowerOnInvocation(powerInvoker) {
+    function executePower(address powerInvoker, bytes32 minion) public ensureOwnershipReturned(powerInvoker) requiresPowerOnInvocation(powerInvoker) {
+        require(authorizedInvokers[powerInvoker], "MORGOTH: Invoker not whitelisted");
         PowerInvoker(powerInvoker).invoke(minion, msg.sender);
     }
 

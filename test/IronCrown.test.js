@@ -9,7 +9,15 @@ describe('IronCrown', async function () {
 
     beforeEach(async function () {})
 
-    it('test1',async function (){
+    it('setSilmarils requires INSERT_SILMARIL power',async function (){
+        
+    })
+
+    it('setSilmarils with too high percentage fails',async function (){
+        
+    })
+
+    it('settlePayments distributes correctly and burns SCX', async function (){
         
     })
 })

@@ -3,49 +3,32 @@ pragma solidity ^0.7.1;
 import "./Angband.sol";
 import "./openzeppelin/Ownable.sol";
 
-contract Power {
-    bytes32 private constant UNASSIGNED = "UNASSIGNED";
-
-    constructor ( 
-    bytes32 _domain,
-    bool _transferrable,
-    bool _unique) {
-        domain = _domain;
-        transferrable = _transferrable;
-        unique = _unique;
-    }
-    bytes32 public name;
-    bytes32 public domain; //Thangorodrim mapping 
-    bool public transferrable;
-    bool public unique;
-
-    function deactivate () external {
-        domain = UNASSIGNED;
-    }
-
-    function active () external view returns (bool) {
-        return domain!=UNASSIGNED;
-    }
+struct Power{
+    bytes32 name;
+    bytes32 domain; //Thangorodrim mapping 
+    bool transferrable;
+    bool unique;
 }
 
 abstract contract PowerInvoker {
     event PowerInvoked (address user, bytes32 minion, bytes32 domain);
     
     Power public power;
-    Powers public powers;
+    PowerRegistry public registry;
     Angband public angband;
     bool invoked;
 
-    constructor (address _power, address _angband) {
-        power = Power(_power);
+    constructor (bytes32 _power, address _angband) {
         angband = Angband(_angband);
-        address _powers = angband.getAddress(angband.POWERS());
-        powers = Powers(_powers);
+        address _registry = angband.getAddress(angband.POWERREGISTRY());
+        registry = PowerRegistry(_registry);
+        (bytes32 name, bytes32 domain,bool transferrable, bool unique) = registry.powers(_power);
+        power = Power(name,domain,transferrable,unique);
     }
 
     modifier revertOwnership {
         _;
-        address ownableContract = angband.getAddress(power.domain());
+        address ownableContract = angband.getAddress(power.domain);
         Ownable(ownableContract).transferOwnership(address(angband));
     }
 
@@ -53,21 +36,21 @@ abstract contract PowerInvoker {
 
     function invoke(bytes32 minion, address sender) public revertOwnership{
         require(msg.sender == address(angband),"MORGOTH: angband only");
-        require(powers.userMinion(sender, minion), "MORGOTH: Invocation by minions only.");
+        require(registry.userMinion(sender, minion), "MORGOTH: Invocation by minions only.");
         require(!invoked, "MORGOTH: Power cannot be invoked.");
         require(orchestrate(), "MORGOTH: Power invocation");
         invoked = true;
-        emit PowerInvoked(sender, minion, power.domain());
+        emit PowerInvoked(sender, minion, power.domain);
     }
 }
 
 contract Empowered {
-    Powers internal powersRegistry;
+    PowerRegistry internal powersRegistry;
     bool initialized;
 
     function changePower(address _powers) public  requiresPowerOrInitialCondition(powersRegistry.CHANGE_POWERS(),address(powersRegistry)==address(0)) {
-        bytes32 _power = Powers(_powers).CHANGE_POWERS();
-        powersRegistry = Powers(_powers);
+        bytes32 _power = PowerRegistry(_powers).CHANGE_POWERS();
+        powersRegistry = PowerRegistry(_powers);
         require(!initialized ||powersRegistry.userHasPower(_power,msg.sender), "MORGOTH: forbidden power");
         initialized = true;
     }
@@ -78,8 +61,8 @@ contract Empowered {
         _;
     }
 
-    modifier requiesPowerOnInvocation(address invoker) {
-        bytes32 power = PowerInvoker(invoker).power().name();
+    modifier requiresPowerOnInvocation(address invoker) {
+        (bytes32 power,,,) = PowerInvoker(invoker).power();
         require(initialized, "MORGOTH: powers not allocated.");
         require(powersRegistry.userHasPower(power,msg.sender), "MORGOTH: forbidden power");
         _;
@@ -104,7 +87,8 @@ Every user privilege is a power in MorgothDAO. At first these powers will be con
 decentralized mechanisms.
 */
 
-contract Powers is Empowered {
+contract PowerRegistry is Empowered {
+    bytes32 public constant NULL = "NULL";
     bytes32 public constant POINT_TO_BEHODLER = "SET_TO_BEHODLER"; // set all behodler addresses
     bytes32 public constant WIRE_ANGBAND = "WIRE_ANGBAND";
     bytes32 public constant CHANGE_POWERS = "CHANGE_POWERS"; // change the power registry
@@ -119,8 +103,8 @@ contract Powers is Empowered {
     bytes32 public constant DISPUTE_DECISION = "DISPUTE_DECISION";
     bytes32 public constant SET_DISPUTE_TIMEOUT = "SET_DISPUTE_TIMEOUT";
     bytes32 public constant INSERT_SILMARIL = "INSERT_SILMARIL";
-
-    mapping (bytes32 => address) powers;
+    bytes32 public constant AUTHORIZE_INVOKER = "AUTHORIZE_INVOKER";
+    mapping (bytes32 => Power) public powers;
 
     mapping (address=> mapping (bytes32=>bool))  userIsMinion;
     mapping (bytes32=>mapping (bytes32=>bool))  powerIsInMinion; //power,minion,bool
@@ -172,21 +156,20 @@ contract Powers is Empowered {
         bool unique) 
         requiresPower(CREATE_NEW_POWER)
          public {
-        Power p= new Power(
+        powers[power] = Power(power,
             domain,
             transferrable,
             unique
         );
-        powers[power] = address(p);
     }
 
     function destroy (bytes32 power) public hasEitherPower(CREATE_NEW_POWER,CHANGE_POWERS){
-        Power(powers[power]).deactivate();
+        powers[power] = Power(NULL,NULL,false,false);
     }
     
     function pour(bytes32 power, bytes32 minion_to) hasEitherPower(power,SEIZE_POWER) public {
-        Power currentPower = Power(powers[power]);
-        require(currentPower.transferrable(), "MORGOTH: power not transferrable");
+        Power memory currentPower = powers[power];
+        require(currentPower.transferrable, "MORGOTH: power not transferrable");
 
         bytes32 fromMinion = minionWithPower[power];
         powerIsInMinion[power][fromMinion] = false;
@@ -196,12 +179,12 @@ contract Powers is Empowered {
     }
 
     function spread (bytes32 power, bytes32 minion_to) requiresPower(power) public {
-         Power currentPower = Power(powers[power]);
-         _spread(currentPower,power,minion_to);
+        Power memory currentPower = powers[power];
+        _spread(currentPower,power,minion_to);
     }
 
-    function _spread(Power power, bytes32 name, bytes32 minion_to) internal {
-        require(!power.unique(), "MORGOTH: power not divisible.");
+    function _spread(Power memory power, bytes32 name, bytes32 minion_to) internal {
+        require(!power.unique, "MORGOTH: power not divisible.");
         minionWithPower[name] = minion_to;
         powerIsInMinion[name][minion_to] = true;
         minionHasPower[minion_to][name] = true;

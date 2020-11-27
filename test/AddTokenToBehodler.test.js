@@ -9,7 +9,7 @@ describe('AddTokenToBehodler', async function () {
 
     beforeEach(async function () {})
 
-    it('test1',async function (){
+    it('adding burnable and non burnable tokens to behodler succeeds',async function (){
 
     })
 })

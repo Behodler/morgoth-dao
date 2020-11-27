@@ -2,7 +2,7 @@
 pragma solidity ^0.7.1;
 
 contract Thangorodrim {
-    bytes32 public constant POWERS = "POWERS";
+    bytes32 public constant POWERREGISTRY = "POWERREGISTRY";
     bytes32 public constant BEHODLER = "BEHODLER";
     bytes32 public constant LACHESIS = "LACHESIS";
     bytes32 public constant IRON_CROWN = "IRON_CROWN";

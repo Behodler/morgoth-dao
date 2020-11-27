@@ -15,7 +15,7 @@ contract ConfigureScarcityPower is PowerInvoker {
     uint transferFee;
     uint burnFee;
     address feeDestination;
-    constructor (address _power, address _angband) PowerInvoker(_power,_angband) {}
+    constructor (bytes32 _power, address _angband) PowerInvoker(_power,_angband) {}
 
     function parameterize (uint _transferFee,uint _burnFee,address _feeDestination) public {
             transferFee=_transferFee;
@@ -24,7 +24,7 @@ contract ConfigureScarcityPower is PowerInvoker {
     }
 
     function orchestrate() internal override returns (bool){
-        address scarcity = angband.getAddress(power.domain());
+        address scarcity = angband.getAddress(power.domain);
         Scarcity scx = Scarcity(scarcity);
         scx.configureScarcity(transferFee,burnFee,feeDestination);
         return true;

@@ -9,7 +9,7 @@ describe('ConfigureScarcityPower', async function () {
 
     beforeEach(async function () {})
 
-    it('test1',async function (){
+    it('configure scx successfully changes values',async function (){
         
     })
 })
