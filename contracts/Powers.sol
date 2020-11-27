@@ -131,7 +131,10 @@ contract PowerRegistry is Empowered {
         powerIsInMinion[SEIZE_POWER]["Melkor"] = true;
         powerIsInMinion[SET_USER_AS_MINION]["Melkor"] = true;
         
-        
+        minionWithPower[CREATE_NEW_POWER] = "Melkor";
+        minionWithPower[SEIZE_POWER] = "Melkor";
+        minionWithPower[SET_USER_AS_MINION] = "Melkor";
+
         minionHasPower["Melkor"][CREATE_NEW_POWER] = true;
         minionHasPower["Melkor"][SEIZE_POWER] = true;
         minionHasPower["Melkor"][SET_USER_AS_MINION] = true;
