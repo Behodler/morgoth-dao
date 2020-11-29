@@ -6,6 +6,8 @@ const { BNtoBigInt } = require('./helpers/BigIntUtil');
 const bigNum = require('./helpers/BigIntUtil')
 
 const PowersRegistry = contract.fromArtifact('PowersRegistry')
+
+
 describe('Powers', async function () {
     const [owner, secondary, Melkor] = accounts;
     const stringToBytes = (s) => web3.utils.fromAscii(s)
@@ -21,7 +23,7 @@ describe('Powers', async function () {
         const MelkorHasSeizePower = await this.powersRegistry.userHasPower.call(stringToBytes('SEIZE_POWER'), Melkor)
         assert.isTrue(melkorHasCreateNewPower)
 
-        const MelkorHasSetUserPower = await this.powersRegistry.userHasPower.call(stringToBytes('SET_USER_AS_MINION'), Melkor)
+        const MelkorHasSetUserPower = await this.powersRegistry.userHasPower.call(stringToBytes('BOND_USER_TO_MINION'), Melkor)
         assert.isTrue(MelkorHasSetUserPower)
     })
 
@@ -39,31 +41,52 @@ describe('Powers', async function () {
     })
 
     it('New bonded user creates new power, fails', async function () {
+        await this.powersRegistry.bondUserToMinion(secondary, stringToBytes('orc'), { from: Melkor })
+        await expectRevert(this.powersRegistry.create(stringToBytes('FAKE_POWER'), stringToBytes('POWERREGISTRY'), true, false, { from: secondary })
+            , "MORGOTH: forbidden power")
+    })
 
+    it('non melkor tries to bond a user and fails', async function () {
+        await this.powersRegistry.bondUserToMinion(secondary, stringToBytes('Sauron'), { from: Melkor })
+        await expectRevert(this.powersRegistry.bondUserToMinion(owner, stringToBytes('Sauron'), { from: secondary }),
+            "MORGOTH: forbidden power")
     })
 
     it('Pouring non transferrable power fails', async function () {
+        await this.powersRegistry.create(stringToBytes('FAKE_POWER'), stringToBytes('POWERREGISTRY'), false, false, { from: Melkor })
+        await expectRevert(this.powersRegistry.pour(stringToBytes('FAKE_POWER'), stringToBytes('Melkor'), { from: Melkor }),
+            "MORGOTH: power not transferrable");
 
     })
 
     it('Pouring transferrable power succeeds', async function () {
-
+        await this.powersRegistry.create(stringToBytes('FAKE_POWER'), stringToBytes('POWERREGISTRY'), false, false, { from: Melkor })
+        await expectRevert(this.powersRegistry.pour(stringToBytes('FAKE_POWER'), stringToBytes('Melkor'), { from: Melkor }),
+            "MORGOTH: power not transferrable");
     })
 
     it('Spreading unique power fails', async function () {
 
+        await this.powersRegistry.create(stringToBytes('FAKE_POWER'), stringToBytes('POWERREGISTRY'), true, true, { from: Melkor })
+        await this.powersRegistry.pour(stringToBytes('FAKE_POWER'), stringToBytes('Melkor'), { from: Melkor })
+
+        await this.powersRegistry.bondUserToMinion(secondary, stringToBytes('Glaurung'), { from: Melkor })
+        await expectRevert(this.powersRegistry.spread(stringToBytes('FAKE_POWER'), stringToBytes('Glaurung'), { from: Melkor }), "MORGOTH: power not divisible.")
     })
 
-    it('Spreading non unique power fails', async function () {
+    it('Spreading non unique power succeeds', async function () {
+        await this.powersRegistry.create(stringToBytes('FAKE_POWER'), stringToBytes('POWERREGISTRY'), true, false, { from: Melkor })
+        await this.powersRegistry.pour(stringToBytes('FAKE_POWER'), stringToBytes('Melkor'), { from: Melkor })
 
-    })
+        const melkorhasPower = await this.powersRegistry.userHasPower.call(stringToBytes('FAKE_POWER'), Melkor)
+        assert.isTrue(melkorhasPower)
 
-    it('dummy empowered contract tests each modifier', async function () {
+        await this.powersRegistry.bondUserToMinion(secondary, stringToBytes('Glaurung'), { from: Melkor })
+        await this.powersRegistry.spread(stringToBytes('FAKE_POWER'), stringToBytes('Glaurung'), { from: Melkor })
+        const secondaryhasFakePower = await this.powersRegistry.userHasPower.call(stringToBytes('FAKE_POWER'), secondary)
+        assert.isTrue(secondaryhasFakePower)
 
-    })
-
-    it(`dummy empowered anyone can change power registry if unset, 
-    only empowered can change if set`, async function () {
-
+        const melkorStillhasPower = await this.powersRegistry.userHasPower.call(stringToBytes('FAKE_POWER'), Melkor)
+        assert.isTrue(melkorStillhasPower)
     })
 })

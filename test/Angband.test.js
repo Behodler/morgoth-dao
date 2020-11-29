@@ -3,6 +3,7 @@ const { expectEvent, expectRevert, ether } = require('@openzeppelin/test-helpers
 const { expect, assert } = require('chai');
 const { BNtoBigInt } = require('./helpers/BigIntUtil');
 const bigNum = require('./helpers/BigIntUtil')
+const DummyInvoker = contract.fromArtifact('DummyInvoker')
 
 describe('Angband', async function () {
     const [owner, secondary] = accounts;
@@ -36,5 +37,10 @@ describe('Angband', async function () {
 
     it(`executeORder66 fails after cooldown period`,async function (){
         
+    })
+
+    it('dummy invoker requires user have power on invocation', async function () {
+        this.dummyInvoker = await DummyInvoker.new()
+      //  await this.ang
     })
 })

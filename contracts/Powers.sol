@@ -36,7 +36,7 @@ abstract contract PowerInvoker {
 
     function invoke(bytes32 minion, address sender) public revertOwnership{
         require(msg.sender == address(angband),"MORGOTH: angband only");
-        require(registry.userMinion(sender, minion), "MORGOTH: Invocation by minions only.");
+        require(registry.isUserMinion(sender, minion), "MORGOTH: Invocation by minions only.");
         require(!invoked, "MORGOTH: Power cannot be invoked.");
         require(orchestrate(), "MORGOTH: Power invocation");
         invoked = true;
@@ -96,7 +96,6 @@ contract PowersRegistry is Empowered {
     bytes32 public constant SEIZE_POWER = "SEIZE_POWER"; //reclaim a delegated power.
     bytes32 public constant CREATE_NEW_POWER = "CREATE_NEW_POWER";
     bytes32 public constant BOND_USER_TO_MINION = "BOND_USER_TO_MINION";
-    bytes32 public constant SET_USER_AS_MINION="SET_USER_AS_MINION";
     bytes32 public constant ADD_TOKEN_TO_BEHODLER = "ADD_TOKEN_TO_BEHODLER";
     bytes32 public constant CONFIGURE_SCARCITY = "CONFIGURE_SCARCITY";
     bytes32 public constant VETO_BAD_OUTCOME = "VETO_BAD_OUTCOME";
@@ -109,7 +108,7 @@ contract PowersRegistry is Empowered {
     mapping (address=> mapping (bytes32=>bool))  userIsMinion;
     mapping (bytes32=>mapping (bytes32=>bool))  powerIsInMinion; //power,minion,bool
     mapping (bytes32=>mapping (bytes32=>bool))  minionHasPower; // minion,power,bool
-    mapping (bytes32=>bytes32) public  minionWithPower; // power,minion
+    mapping (address=>bytes32) public userMinion;
 
     bytes32[] minions;
 
@@ -129,15 +128,13 @@ contract PowersRegistry is Empowered {
         userIsMinion[msg.sender]["Melkor"] = true;
         powerIsInMinion[CREATE_NEW_POWER]["Melkor"] = true;
         powerIsInMinion[SEIZE_POWER]["Melkor"] = true;
-        powerIsInMinion[SET_USER_AS_MINION]["Melkor"] = true;
+        powerIsInMinion[BOND_USER_TO_MINION]["Melkor"] = true;
         
-        minionWithPower[CREATE_NEW_POWER] = "Melkor";
-        minionWithPower[SEIZE_POWER] = "Melkor";
-        minionWithPower[SET_USER_AS_MINION] = "Melkor";
+        userMinion[msg.sender] = "Melkor";
 
         minionHasPower["Melkor"][CREATE_NEW_POWER] = true;
         minionHasPower["Melkor"][SEIZE_POWER] = true;
-        minionHasPower["Melkor"][SET_USER_AS_MINION] = true;
+        minionHasPower["Melkor"][BOND_USER_TO_MINION] = true;
         initialized =true;
     }
 
@@ -150,12 +147,12 @@ contract PowersRegistry is Empowered {
         view
         returns (bool)
     {
-        bytes32 minion= minionWithPower[power];
-       return  userIsMinion[user][minion];
+        bytes32 minion = userMinion[user];
+        return minionHasPower[minion][power];
     }
 
-    function userMinion (address user, bytes32 minion) public view returns (bool){
-          return  userIsMinion[user][minion];
+    function isUserMinion (address user, bytes32 minion) public view returns (bool){
+          return userIsMinion[user][minion];
     }
     
     function create (bytes32 power,
@@ -171,21 +168,6 @@ contract PowersRegistry is Empowered {
         );
     }
 
-      function createTest (bytes32 power,
-        bytes32 domain,
-        bool transferrable,
-        bool unique) 
-        requiresPower(CREATE_NEW_POWER)
-         public returns (bytes32, bytes32, bool, bool){
-        // powers[power] = Power(power,
-        //     domain,
-        //     transferrable,
-        //     unique
-        // );
-        return (power,domain,transferrable,unique);
-    }
-
-
     function destroy (bytes32 power) public hasEitherPower(CREATE_NEW_POWER,CHANGE_POWERS){
         powers[power] = Power(NULL,NULL,false,false);
     }
@@ -194,7 +176,8 @@ contract PowersRegistry is Empowered {
         Power memory currentPower = powers[power];
         require(currentPower.transferrable, "MORGOTH: power not transferrable");
 
-        bytes32 fromMinion = minionWithPower[power];
+
+        bytes32 fromMinion = userMinion[msg.sender];
         powerIsInMinion[power][fromMinion] = false;
         minionHasPower[fromMinion][power] = false;
 
@@ -203,22 +186,23 @@ contract PowersRegistry is Empowered {
 
     function spread (bytes32 power, bytes32 minion_to) requiresPower(power) public {
         Power memory currentPower = powers[power];
+         require(!currentPower.unique, "MORGOTH: power not divisible.");
         _spread(currentPower,power,minion_to);
     }
 
     function _spread(Power memory power, bytes32 name, bytes32 minion_to) internal {
-        require(!power.unique, "MORGOTH: power not divisible.");
-        minionWithPower[name] = minion_to;
         powerIsInMinion[name][minion_to] = true;
         minionHasPower[minion_to][name] = true;
     }
 
     function castIntoVoid (address user, bytes32 minion) public requiresPower(BOND_USER_TO_MINION) {
         userIsMinion[user][minion] = false;
+        userMinion[user] = "";
     }
 
     function bondUserToMinion(address user, bytes32 minion)public requiresPower(BOND_USER_TO_MINION) {
         require(!userIsMinion[user][minion], "MORGOTH: minion already assigned");
         userIsMinion[user][minion] = true;
+        userMinion[user] = minion;
     }
  }
