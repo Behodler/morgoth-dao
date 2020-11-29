@@ -5,36 +5,37 @@ const { expect, assert } = require('chai');
 const { BNtoBigInt } = require('./helpers/BigIntUtil');
 const bigNum = require('./helpers/BigIntUtil')
 
-const PowerRegistry = contract.fromArtifact('PowerRegistry')
+const PowersRegistry = contract.fromArtifact('PowersRegistry')
 describe('Powers', async function () {
     const [owner, secondary, Melkor] = accounts;
     const stringToBytes = (s) => web3.utils.fromAscii(s)
     beforeEach(async function () {
-        /**
-            const addressBalanceCheckLib = await AddressBalanceCheck.new()
-        const commonMathLib = await CommonMath.new()
-        await Behodler.detectNetwork()
-        await Behodler.link('AddressBalanceCheck', addressBalanceCheckLib.address)
-        await Behodler.link('CommonMath', commonMathLib.address)
-        this.behodler = await Behodler.new({ from: owner });
-         */
-
-        this.powerRegistry = await PowerRegistry.new({ from: Melkor })
+        this.powersRegistry = await PowersRegistry.new({ from: Melkor })
+        await this.powersRegistry.seed()
     })
 
     it('Melkor has correct powers, deployer is Melkor', async function () {
-        const melkorHasCreateNewPower = await this.powerRegistry.userHasPower.call(stringToBytes('CREATE_NEW_POWER'), Melkor)
-        assert.isTrue(melkorHasCreateNewPower)
-    
-        const MelkorHasSeizePower = await this.powerRegistry.userHasPower.call(stringToBytes('SEIZE_POWER'), Melkor)
+        const melkorHasCreateNewPower = await this.powersRegistry.userHasPower.call(stringToBytes('CREATE_NEW_POWER'), Melkor)
         assert.isTrue(melkorHasCreateNewPower)
 
-        const MelkorHasSetUserPower = await this.powerRegistry.userHasPower.call(stringToBytes('SET_USER_AS_MINION'), Melkor)
+        const MelkorHasSeizePower = await this.powersRegistry.userHasPower.call(stringToBytes('SEIZE_POWER'), Melkor)
+        assert.isTrue(melkorHasCreateNewPower)
+
+        const MelkorHasSetUserPower = await this.powersRegistry.userHasPower.call(stringToBytes('SET_USER_AS_MINION'), Melkor)
         assert.isTrue(MelkorHasSetUserPower)
     })
 
     it('Melkor creates new power and seizes it', async function () {
+        let melkorHasFakePower = await this.powersRegistry.userHasPower.call(stringToBytes('FAKE_POWER'), Melkor)
+        assert.isFalse(melkorHasFakePower)
 
+        await this.powersRegistry.create(stringToBytes('FAKE_POWER'), stringToBytes('POWERREGISTRY'), true, false, { from: Melkor })
+        melkorHasFakePower = await this.powersRegistry.userHasPower.call(stringToBytes('FAKE_POWER'), Melkor)
+        assert.isFalse(melkorHasFakePower)
+        await this.powersRegistry.pour(stringToBytes('FAKE_POWER'), stringToBytes('Melkor'), { from: Melkor })
+
+        melkorHasFakePower = await this.powersRegistry.userHasPower.call(stringToBytes('FAKE_POWER'), Melkor)
+        assert.isTrue(melkorHasFakePower)
     })
 
     it('New bonded user creates new power, fails', async function () {

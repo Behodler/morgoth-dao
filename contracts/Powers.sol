@@ -14,14 +14,14 @@ abstract contract PowerInvoker {
     event PowerInvoked (address user, bytes32 minion, bytes32 domain);
     
     Power public power;
-    PowerRegistry public registry;
+    PowersRegistry public registry;
     Angband public angband;
     bool invoked;
 
     constructor (bytes32 _power, address _angband) {
         angband = Angband(_angband);
         address _registry = angband.getAddress(angband.POWERREGISTRY());
-        registry = PowerRegistry(_registry);
+        registry = PowersRegistry(_registry);
         (bytes32 name, bytes32 domain,bool transferrable, bool unique) = registry.powers(_power);
         power = Power(name,domain,transferrable,unique);
     }
@@ -45,12 +45,12 @@ abstract contract PowerInvoker {
 }
 
 contract Empowered {
-    PowerRegistry internal powersRegistry;
+    PowersRegistry internal powersRegistry;
     bool initialized;
 
     function changePower(address _powers) public  requiresPowerOrInitialCondition(powersRegistry.CHANGE_POWERS(),address(powersRegistry)==address(0)) {
-        bytes32 _power = PowerRegistry(_powers).CHANGE_POWERS();
-        powersRegistry = PowerRegistry(_powers);
+        bytes32 _power = PowersRegistry(_powers).CHANGE_POWERS();
+        powersRegistry = PowersRegistry(_powers);
         require(!initialized ||powersRegistry.userHasPower(_power,msg.sender), "MORGOTH: forbidden power");
         initialized = true;
     }
@@ -87,7 +87,7 @@ Every user privilege is a power in MorgothDAO. At first these powers will be con
 decentralized mechanisms.
 */
 
-contract PowerRegistry is Empowered {
+contract PowersRegistry is Empowered {
     bytes32 public constant NULL = "NULL";
     bytes32 public constant POINT_TO_BEHODLER = "SET_TO_BEHODLER"; // set all behodler addresses
     bytes32 public constant WIRE_ANGBAND = "WIRE_ANGBAND";
@@ -138,6 +138,11 @@ contract PowerRegistry is Empowered {
         minionHasPower["Melkor"][CREATE_NEW_POWER] = true;
         minionHasPower["Melkor"][SEIZE_POWER] = true;
         minionHasPower["Melkor"][SET_USER_AS_MINION] = true;
+        initialized =true;
+    }
+
+    function seed () public {
+        powersRegistry = PowersRegistry(address(this));
     }
 
     function userHasPower(bytes32 power, address user)
@@ -165,6 +170,21 @@ contract PowerRegistry is Empowered {
             unique
         );
     }
+
+      function createTest (bytes32 power,
+        bytes32 domain,
+        bool transferrable,
+        bool unique) 
+        requiresPower(CREATE_NEW_POWER)
+         public returns (bytes32, bytes32, bool, bool){
+        // powers[power] = Power(power,
+        //     domain,
+        //     transferrable,
+        //     unique
+        // );
+        return (power,domain,transferrable,unique);
+    }
+
 
     function destroy (bytes32 power) public hasEitherPower(CREATE_NEW_POWER,CHANGE_POWERS){
         powers[power] = Power(NULL,NULL,false,false);

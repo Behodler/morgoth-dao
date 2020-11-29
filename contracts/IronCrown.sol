@@ -9,7 +9,6 @@ interface BurnableERC20 {
 }
 
 contract IronCrown is Empowered {   
-    PowerRegistry powerRegistry;
     BurnableERC20 scx;
     struct Silmaril {
         uint16 percentage; //0-1000
@@ -24,7 +23,7 @@ contract IronCrown is Empowered {
     Silmaril[4] silmarils; 
 
     constructor (address _powers, address _scx) {
-        powerRegistry = PowerRegistry(_powers);
+        powersRegistry = PowersRegistry(_powers);
         scx = BurnableERC20(_scx);
     }
 
@@ -38,7 +37,7 @@ contract IronCrown is Empowered {
         }
     }
 
-    function setSilmaril (uint8 index, uint8 percentage, address exit) external requiresPower(powerRegistry.INSERT_SILMARIL()) {
+    function setSilmaril (uint8 index, uint8 percentage, address exit) external requiresPower(powersRegistry.INSERT_SILMARIL()) {
         require(index<3, "MORGOTH: index out of bounds");
         settlePayments();
         silmarils[index].percentage = percentage;

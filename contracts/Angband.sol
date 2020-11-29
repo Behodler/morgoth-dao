@@ -6,12 +6,12 @@ import "./openzeppelin/Ownable.sol";
 
 contract Angband is Empowered, Thangorodrim {
     event EmergencyShutdownTriggered(address newOwner);
-    PowerRegistry powers;
+    PowersRegistry powers;
     uint emergencyCoolDownPeriod;
     address deployer; 
     mapping (address=>bool) public authorizedInvokers;
     constructor (address _powers) {
-        powers = PowerRegistry (_powers);
+        powers = PowersRegistry (_powers);
         _setAddress("POWERREGISTRY",_powers);
         deployer = msg.sender;
         emergencyCoolDownPeriod = block.timestamp + 66 days;
@@ -28,8 +28,8 @@ contract Angband is Empowered, Thangorodrim {
         authorizedInvokers[invoker] = authorized;
     }
 
-    function setPowerRegistry(address _powers) public requiresPower(powers.WIRE_ANGBAND()) {
-         powers = PowerRegistry (_powers);
+    function setPowersRegistry(address _powers) public requiresPower(powers.WIRE_ANGBAND()) {
+         powers = PowersRegistry (_powers);
         _setAddress(POWERREGISTRY,_powers);
     }
 
