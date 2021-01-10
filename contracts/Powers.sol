@@ -29,7 +29,12 @@ abstract contract PowerInvoker {
     modifier revertOwnership {
         _;
         address ownableContract = angband.getAddress(power.domain);
-        Ownable(ownableContract).transferOwnership(address(angband));
+        if(ownableContract!=address(angband)) Ownable(ownableContract).transferOwnership(address(angband));
+    }
+
+    function destruct () public{
+        require(invoked, "MORGOTH: awaiting invocation");
+        selfdestruct(msg.sender);
     }
 
     function orchestrate() internal virtual returns (bool);
@@ -44,7 +49,7 @@ abstract contract PowerInvoker {
     }
 }
 
-contract Empowered {
+contract Empowered is Ownable {
     PowersRegistry internal powersRegistry;
     bool initialized;
 
@@ -89,7 +94,7 @@ decentralized mechanisms.
 
 contract PowersRegistry is Empowered {
     bytes32 public constant NULL = "NULL";
-    bytes32 public constant POINT_TO_BEHODLER = "SET_TO_BEHODLER"; // set all behodler addresses
+    bytes32 public constant POINT_TO_BEHODLER = "POINT_TO_BEHODLER"; // set all behodler addresses
     bytes32 public constant WIRE_ANGBAND = "WIRE_ANGBAND";
     bytes32 public constant CHANGE_POWERS = "CHANGE_POWERS"; // change the power registry
     bytes32 public constant CONFIGURE_THANGORODRIM = "CONFIGURE_THANGORODRIM"; // set the registry of contract addresses

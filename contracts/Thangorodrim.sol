@@ -6,6 +6,7 @@ contract Thangorodrim {
     bytes32 public constant BEHODLER = "BEHODLER";
     bytes32 public constant LACHESIS = "LACHESIS";
     bytes32 public constant IRON_CROWN = "IRON_CROWN";
+    bytes32 public constant ANGBAND = "ANGBAND";
 
     mapping(bytes32 => address) private addresses;
 

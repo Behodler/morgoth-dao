@@ -16,9 +16,8 @@ contract IronCrown is Empowered {
     }
 
     uint8 public constant perpetualMining = 0;
-    uint8 public constant burn = 1;
-    uint8 public constant dev = 2;
-    uint8 public constant treasury = 3;
+    uint8 public constant dev = 1;
+    uint8 public constant treasury = 2;
     
     Silmaril[4] silmarils; 
 
@@ -33,7 +32,7 @@ contract IronCrown is Empowered {
         for(uint8 i =0;i<4;i++){
             Silmaril memory silmaril = silmarils[i];
             uint share = (balance*silmaril.percentage)/1000;
-            transferOrBurn(i,share);
+            scx.transfer(silmarils[i].exit,share);
         }
     }
 
@@ -43,12 +42,5 @@ contract IronCrown is Empowered {
         silmarils[index].percentage = percentage;
         require(silmarils[0].percentage + silmarils[1].percentage + silmarils[2].percentage + silmarils[3].percentage <=1000,"MORGOTH: percentage exceeds 100%");
         silmarils[index].exit = exit;
-    }
-
-    function transferOrBurn(uint8 index, uint amount) internal {
-        if(index == burn)
-            scx.burn(amount);
-        else 
-            scx.transfer(silmarils[index].exit,amount);
     }
 }
