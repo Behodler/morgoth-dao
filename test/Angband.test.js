@@ -1,5 +1,5 @@
 const { accounts, contract } = require('@openzeppelin/test-environment');
-const { expectEvent, expectRevert, ether } = require('@openzeppelin/test-helpers');
+const { expectEvent, expectRevert, ether, time } = require('@openzeppelin/test-helpers');
 const { expect, assert } = require('chai');
 const { BNtoBigInt } = require('./helpers/BigIntUtil');
 const bigNum = require('./helpers/BigIntUtil')
@@ -23,9 +23,15 @@ describe('Angband', async function () {
         await this.powersRegistry.seed()
         this.behodler = await MockBehodler.new()
         this.lachesis = await MockLachesis.new()
-        this.angband = await Angband.new(this.powersRegistry.address, this.behodler.address, this.lachesis.address, { from: Melkor })
+        this.angband = await Angband.new(this.powersRegistry.address, { from: Melkor })
+        await this.behodler.transferOwnership(this.angband.address);
+        await this.lachesis.transferOwnership(this.angband.address);
 
         await this.angband.finalizeSetup()
+
+        await this.powersRegistry.create(stringToBytes('POINT_TO_BEHODLER'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
+        await this.powersRegistry.pour(stringToBytes('POINT_TO_BEHODLER'), stringToBytes('Melkor'), { from: Melkor })
+        await this.angband.setBehodler(this.behodler.address, this.lachesis.address, { from: Melkor })
         await this.powersRegistry.transferOwnership(this.angband.address, { from: Melkor })
     })
 
@@ -82,7 +88,7 @@ describe('Angband', async function () {
     })
 
     it(`powerInvoker which does not return ownership fails in execute power,
-    same invoker which does return ownership succeeds`, async function () {
+     same invoker which does return ownership succeeds`, async function () {
         //use greedyInvoker
         await this.powersRegistry.create(stringToBytes('WIRE_ANGBAND'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
         await this.powersRegistry.pour(stringToBytes('WIRE_ANGBAND'), stringToBytes('Melkor'), { from: Melkor })
@@ -119,17 +125,19 @@ describe('Angband', async function () {
             "MORGOTH: power invoker failed to return ownership")
     })
 
-
     it(`ownership of behodler and lachesis returned after execute order66`, async function () {
+        expect(await this.behodler.owner()).to.equal(this.angband.address)
+        expect(await this.lachesis.owner()).to.equal(this.angband.address)
 
+        await this.angband.executeOrder66({ from: Melkor });
+
+        expect(await this.behodler.owner()).to.equal(Melkor)
+        expect(await this.lachesis.owner()).to.equal(Melkor)
     })
 
     it(`executeORder66 fails after cooldown period`, async function () {
-
-    })
-
-    it('dummy invoker requires user have power on invocation', async function () {
-        //  this.dummyInvoker = await DummyInvoker.new()
-        //  await this.ang
+        //5702401
+        await time.increase(5702401)
+        await expectRevert(this.angband.executeOrder66({ from: Melkor }), "MORGOTH: Emergency shutdown powers have expired. Angband is forever.");
     })
 })

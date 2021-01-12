@@ -10,17 +10,12 @@ contract Angband is Empowered, Thangorodrim {
     address deployer;
     mapping(address => bool) public authorizedInvokers;
 
-    constructor(
-        address _powers,
-        address behodler,
-        address lachesis
-    ) {
+    constructor(address _powers) {
         powersRegistry = PowersRegistry(_powers);
         _setAddress("POWERREGISTRY", _powers);
         deployer = msg.sender;
         emergencyCoolDownPeriod = block.timestamp + 66 days;
-        _setAddress(BEHODLER, behodler);
-        _setAddress(LACHESIS, lachesis);
+
         initialized = true;
     }
 
@@ -59,15 +54,36 @@ contract Angband is Empowered, Thangorodrim {
         public
         requiresPower(powersRegistry.WIRE_ANGBAND())
     {
+        require(
+            domain == "ANGBAND" || Ownable(location).owner() == address(this),
+            "MORGOTH: transfer domain ownership."
+        );
         _setAddress(domain, location);
+    }
+
+    function relinquishDomain(bytes32 domain)
+        public
+        requiresPower(powersRegistry.WIRE_ANGBAND())
+    {
+        address domainContract = getAddress(domain);
+        Ownable(domainContract).transferOwnership(msg.sender);
     }
 
     function setBehodler(address behodler, address lachesis)
         public
         requiresPower(powersRegistry.POINT_TO_BEHODLER())
     {
+        address self = address(this);
         _setAddress(BEHODLER, behodler);
         _setAddress(LACHESIS, lachesis);
+        require(
+            Ownable(behodler).owner() == self,
+            "MORGOTH: transfer Behodler ownership to Angband"
+        );
+        require(
+            Ownable(lachesis).owner() == self,
+            "MORGOTH: transfer Lachesis ownership to Angband"
+        );
     }
 
     function executePower(address powerInvoker)
@@ -98,7 +114,7 @@ contract Angband is Empowered, Thangorodrim {
         require(msg.sender == deployer);
         require(
             block.timestamp <= emergencyCoolDownPeriod,
-            "Emergency shutdown powers have expired. Angband is forever."
+            "MORGOTH: Emergency shutdown powers have expired. Angband is forever."
         );
         address behodler = getAddress(BEHODLER);
         address lachesis = getAddress(LACHESIS);
