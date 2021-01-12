@@ -33,7 +33,6 @@ contract Angband is Empowered, Thangorodrim {
         (, bytes32 domain, , ) = PowerInvoker(powerInvoker).power();
         address ownable = getAddress(domain);
 
-        require(ownable != address(0), "WOOPS");
         require(
             ownable == address(this) ||
                 Ownable(ownable).owner() == address(this),
@@ -76,20 +75,22 @@ contract Angband is Empowered, Thangorodrim {
         ensureOwnershipReturned(powerInvoker)
         requiresPowerOnInvocation(powerInvoker)
     {
-        // require(
-        //     authorizedInvokers[powerInvoker],
-        //     "MORGOTH: Invoker not whitelisted"
-        // );
-        // PowerInvoker invoker = PowerInvoker(powerInvoker);
-        // (, bytes32 domain, , ) = invoker.power();
-        // address domainContract = getAddress(domain);
-        // Ownable ownable = Ownable(domainContract);
-        // require(
-        //     domainContract == address(this) || ownable.owner() == address(this),
-        //     "MORGOTH: Transfer domain to Angband before using it"
-        // );
-        // bytes32 minion = powersRegistry.userMinion(msg.sender);
-        // PowerInvoker(powerInvoker).invoke(minion, msg.sender);
+        require(
+            authorizedInvokers[powerInvoker],
+            "MORGOTH: Invoker not whitelisted"
+        );
+        PowerInvoker invoker = PowerInvoker(powerInvoker);
+        (, bytes32 domain, , ) = invoker.power();
+        address domainContract = getAddress(domain);
+        Ownable ownable = Ownable(domainContract);
+        address self = address(this);
+        require(
+            domainContract == address(this) || ownable.owner() == address(this),
+            "MORGOTH: Transfer domain to Angband before using it"
+        );
+        if (domainContract != self) ownable.transferOwnership(powerInvoker);
+        bytes32 minion = powersRegistry.userMinion(msg.sender);
+        PowerInvoker(powerInvoker).invoke(minion, msg.sender);
     }
 
     //temporary function to allow deployer to wrest control back from Angband in case of bugs or vulnerabilities

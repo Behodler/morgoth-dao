@@ -11,6 +11,7 @@ const MockBehodler = contract.fromArtifact('MockBehodler')
 const MockLachesis = contract.fromArtifact('MockLachesis')
 const ThirdParty = contract.fromArtifact('ThirdParty')
 const GreedyInvoker = contract.fromArtifact('GreedyInvoker')
+const GreedyContract = contract.fromArtifact('GreedyContract')
 
 const stringToBytes = (s) => web3.utils.fromAscii(s)
 
@@ -28,54 +29,57 @@ describe('Angband', async function () {
         await this.powersRegistry.transferOwnership(this.angband.address, { from: Melkor })
     })
 
-    // it('only minion with WIRE_ANGBAND can set registry and point to Behodler', async function () {
-    //     await this.powersRegistry.create(stringToBytes('WIRE_ANGBAND'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
-    //     await this.powersRegistry.pour(stringToBytes('WIRE_ANGBAND'), stringToBytes('Melkor'), { from: Melkor })
+    it('only minion with WIRE_ANGBAND can set registry and point to Behodler', async function () {
+        await this.powersRegistry.create(stringToBytes('WIRE_ANGBAND'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
+        await this.powersRegistry.pour(stringToBytes('WIRE_ANGBAND'), stringToBytes('Melkor'), { from: Melkor })
 
-    //     await this.angband.setPowersRegistry(this.powersRegistry.address, { from: Melkor })
-    //     await expectRevert(this.angband.setPowersRegistry(this.powersRegistry.address, { from: secondary }), "MORGOTH: forbidden power.")
-    // })
+        await this.angband.setPowersRegistry(this.powersRegistry.address, { from: Melkor })
+        await expectRevert(this.angband.setPowersRegistry(this.powersRegistry.address, { from: secondary }), "MORGOTH: forbidden power.")
+    })
 
-    // it('only minion with POINT_TO_BEHODLER can set behodler', async function () {
-    //     await this.powersRegistry.create(stringToBytes('POINT_TO_BEHODLER'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
-    //     await this.powersRegistry.pour(stringToBytes('POINT_TO_BEHODLER'), stringToBytes('Melkor'), { from: Melkor })
+    it('only minion with POINT_TO_BEHODLER can set behodler', async function () {
+        await this.powersRegistry.create(stringToBytes('POINT_TO_BEHODLER'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
+        await this.powersRegistry.pour(stringToBytes('POINT_TO_BEHODLER'), stringToBytes('Melkor'), { from: Melkor })
 
-    //     await this.angband.setBehodler(this.behodler.address, this.lachesis.address, { from: Melkor })
-    //     await expectRevert(this.angband.setBehodler(this.behodler.address, this.lachesis.address, { from: secondary }), "MORGOTH: forbidden power.")
-    // })
+        await this.angband.setBehodler(this.behodler.address, this.lachesis.address, { from: Melkor })
+        await expectRevert(this.angband.setBehodler(this.behodler.address, this.lachesis.address, { from: secondary }), "MORGOTH: forbidden power.")
+    })
 
-    // it('dummy invoker not authorized cannot be invoked', async function () {
-    //     //create power
-    //     const power = stringToBytes('UNAUTH')
-    //     await this.powersRegistry.create(power, stringToBytes('ANGBAND'), true, false, { from: Melkor })
-    //     //instantiate dummy invoker
-    //     this.dummyInvoker = await DummyInvoker.new(power, this.angband.address)
+    it('dummy invoker not authorized cannot be invoked', async function () {
+        //create power
+        const power = stringToBytes('UNAUTH')
+        await this.powersRegistry.create(power, stringToBytes('ANGBAND'), true, false, { from: Melkor })
+        //instantiate dummy invoker
+        this.dummyInvoker = await DummyInvoker.new(power, this.angband.address)
 
-    //     //  assert power forbidden
-    //     await expectRevert(this.angband.executePower(this.dummyInvoker.address, { from: Melkor }), 'MORGOTH: forbidden power.')
+        //  assert power forbidden
+        await expectRevert(this.angband.executePower(this.dummyInvoker.address, { from: Melkor }), 'MORGOTH: forbidden power.')
 
-    //     //grant power
-    //     await this.powersRegistry.pour(power, stringToBytes('Melkor'), { from: Melkor })
+        //grant power
+        await this.powersRegistry.pour(power, stringToBytes('Melkor'), { from: Melkor })
 
-    //     //assert not authorized
-    //     await expectRevert(this.angband.executePower(this.dummyInvoker.address, { from: Melkor }), 'MORGOTH: Invoker not whitelisted')
+        //assert not authorized
+        await expectRevert(this.angband.executePower(this.dummyInvoker.address, { from: Melkor }), 'MORGOTH: Invoker not whitelisted')
 
-    //     //attempt self destruct
-    //     await expectRevert(this.dummyInvoker.destruct(), "MORGOTH: awaiting invocation");
+        //attempt self destruct
+        await expectRevert(this.dummyInvoker.destruct(), "MORGOTH: awaiting invocation");
 
-    //     //create and seize Invoker Authorization power
-    //     const authPower = stringToBytes('AUTHORIZE_INVOKER')
-    //     await this.powersRegistry.create(authPower, stringToBytes('ANGBAND'), true, false, { from: Melkor })
-    //     await this.powersRegistry.pour(authPower, stringToBytes('Melkor'), { from: Melkor })
+        //create and seize Invoker Authorization power
+        const authPower = stringToBytes('AUTHORIZE_INVOKER')
+        await this.powersRegistry.create(authPower, stringToBytes('ANGBAND'), true, false, { from: Melkor })
+        await this.powersRegistry.pour(authPower, stringToBytes('Melkor'), { from: Melkor })
+        await this.powersRegistry.create(stringToBytes('WIRE_ANGBAND'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
+        await this.powersRegistry.pour(stringToBytes('WIRE_ANGBAND'), stringToBytes('Melkor'), { from: Melkor })
 
-    //     //authorize dummyInvoker
-    //     await this.angband.authorizeInvoker(this.dummyInvoker.address, true, { from: Melkor })
+        await this.angband.mapDomain(this.angband.address, stringToBytes('ANGBAND'), { from: Melkor })
+        //authorize dummyInvoker
+        await this.angband.authorizeInvoker(this.dummyInvoker.address, true, { from: Melkor })
 
-    //     //invoke successfully
-    //     await this.angband.executePower(this.dummyInvoker.address, { from: Melkor })
-    //     // self destruct successfully
-    //     this.dummyInvoker.destruct({ from: Melkor })
-    // })
+        //invoke successfully
+        await this.angband.executePower(this.dummyInvoker.address, { from: Melkor })
+        // self destruct successfully
+        this.dummyInvoker.destruct({ from: Melkor })
+    })
 
     it(`powerInvoker which does not return ownership fails in execute power,
     same invoker which does return ownership succeeds`, async function () {
@@ -98,9 +102,10 @@ describe('Angband', async function () {
         await this.powersRegistry.pour(greedPower, stringToBytes('Melkor'), { from: Melkor })
 
         this.greedyInvoker = await GreedyInvoker.new(greedPower, this.angband.address, { from: Melkor })
-       
-        await this.angband.mapDomain(this.greedyInvoker.address, greedDomain, { from: Melkor })
-      
+        this.greedyContract = await GreedyContract.new({ from: Melkor })
+        await this.greedyContract.transferOwnership(this.angband.address, { from: Melkor })
+        await this.angband.mapDomain(this.greedyContract.address, greedDomain, { from: Melkor })
+
         //create and seize Invoker Authorization power
         const authPower = stringToBytes('AUTHORIZE_INVOKER')
         await this.powersRegistry.create(authPower, stringToBytes('ANGBAND'), true, false, { from: Melkor })
@@ -108,7 +113,7 @@ describe('Angband', async function () {
 
         //authorize dummyInvoker
         await this.angband.authorizeInvoker(this.greedyInvoker.address, true, { from: Melkor })
-      
+
         //invoke should fail to return ownership
         await expectRevert(this.angband.executePower(this.greedyInvoker.address, { from: Melkor }),
             "MORGOTH: power invoker failed to return ownership")

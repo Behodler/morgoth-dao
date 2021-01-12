@@ -4,12 +4,13 @@ import "../Powers.sol";
 import "../openzeppelin/Ownable.sol";
 
 contract fakeOwner {
+    address internal _owner;
     function owner() public view returns (address){
-        return address(this);
+        return _owner;
     }
 
     function transferOwnership (address newOwner) public  {
-
+        _owner = address(this);
     }
 }
 
@@ -27,6 +28,7 @@ abstract contract PowerInvokerNoReturn is fakeOwner {
         registry = PowersRegistry(_registry);
         (bytes32 name, bytes32 domain,bool transferrable, bool unique) = registry.powers(_power);
         power = Power(name,domain,transferrable,unique);
+        _owner = _angband;
     }
 
     function destruct () public{
@@ -37,12 +39,12 @@ abstract contract PowerInvokerNoReturn is fakeOwner {
     function orchestrate() internal virtual returns (bool);
 
     function invoke(bytes32 minion, address sender) public{
-        // require(msg.sender == address(angband),"MORGOTH: angband only");
-        // require(registry.isUserMinion(sender, minion), "MORGOTH: Invocation by minions only.");
-        // require(!invoked, "MORGOTH: Power cannot be invoked.");
-        // require(orchestrate(), "MORGOTH: Power invocation");
-        // invoked = true;
-        // emit PowerInvoked(sender, minion, power.domain);
+        require(msg.sender == address(angband),"MORGOTH: angband only");
+        require(registry.isUserMinion(sender, minion), "MORGOTH: Invocation by minions only.");
+        require(!invoked, "MORGOTH: Power cannot be invoked.");
+        require(orchestrate(), "MORGOTH: Power invocation");
+        invoked = true;
+        emit PowerInvoked(sender, minion, power.domain);
     }
 }
 
@@ -50,6 +52,8 @@ contract ThirdParty is Ownable{
 
 }
 
+contract GreedyContract is Ownable {
+}
 contract GreedyInvoker is PowerInvokerNoReturn{
     constructor (bytes32 _power, address _angband) PowerInvokerNoReturn(_power,_angband) {
     }
