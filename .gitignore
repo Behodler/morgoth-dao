@@ -4,4 +4,4 @@ TODO.txt
 *.code-workspace
 artifacts
 cache
-*.pdf
+DeploymentDependency.pdf
