@@ -29,6 +29,13 @@ contract MockBehodler2 is Ownable {
     mapping(address => bool) public validTokens;
     mapping(address => bool) public whiteListUsers;
 
+    function configureScarcity(
+        uint256 transferFee,
+        uint256 burnFee,
+        address feeDestination
+    ) public onlyOwner {
+    }
+
     function setValidToken(
         address token,
         bool _valid,

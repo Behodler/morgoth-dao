@@ -16,7 +16,7 @@ const Migrator = contract.fromArtifact('Migrator')
 const ScarcityBridge = contract.fromArtifact('ScarcityBridge');
 
 describe('Migration', async function () {
-    const [owner, user2, user3] = accounts;
+    const [owner, user2, user3, feeDestination] = accounts;
     let initialScarcityGenerated;
     before(async function () {
         //construct
@@ -27,6 +27,7 @@ describe('Migration', async function () {
         this.behodler2 = await Behodler2.new({ from: owner })
         await this.lachesis2.setBehodler(this.behodler2.address)
         await this.behodler2.setLachesis(this.lachesis2.address)
+        await this.behodler2.configureScarcity(10, 25, feeDestination, { from: owner })
 
         //create tokens to Behodler
         this.token1 = await MockToken.new({ from: owner })
@@ -208,6 +209,33 @@ describe('Migration', async function () {
         assert.isTrue(weiDaiBurnableOnBehodler2)
         assert.isTrue(eyeBurnableOnBehodler2)
 
+
+        await this.migrator.step6(2)
+        await this.migrator.step6(2)
+        await this.migrator.step6(4)
+
+        currentStep = (await this.migrator.stepCounter()).toNumber()
+        assert.equal(currentStep, 7)
+
+        let token1BalanceOnBehodler2 = (await this.token1.balanceOf(this.behodler2.address)).toString()
+        assert.equal(token1BalanceOnBehodler2, '3000000000000000000000')
+
+        let token2BalanceOnBehodler2 = (await this.token2.balanceOf(this.behodler2.address)).toString()
+        assert.equal(token2BalanceOnBehodler2, '160000000000000000000')
+
+        let token3BalanceOnBehodler2 = (await this.token3.balanceOf(this.behodler2.address)).toString()
+        assert.equal(token3BalanceOnBehodler2, '2000000000000000000000')
+
+        let weiDaiBalanceOnBehodler2 = (await this.weidai.balanceOf(this.behodler2.address)).toString()
+        assert.equal(weiDaiBalanceOnBehodler2, '500000000000000000000')
+
+        let eyeBalanceOnBehodler2 = (await this.eye.balanceOf(this.behodler2.address)).toString()
+        assert.equal(eyeBalanceOnBehodler2, '90000000000000000000000')
+
+        const bridgeAddress = await this.migrator.bridge()
+        const bridge = contract.fromArtifact('ScarcityBridge', bridgeAddress)
+        const exchangeRate = (await bridge.exchangeRate()).toString()
+        assert.equal(exchangeRate, "10000")
     })
 
     it('allows bail before step 7', async () => {

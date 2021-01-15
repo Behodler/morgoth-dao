@@ -133,7 +133,7 @@ contract Migrator {
     }
 
     function initBridge() public {
-        bridge = new ScarcityBridge(One.scarcity, One.behodler, address(this));
+        bridge = new ScarcityBridge(One.scarcity, Two.behodler, address(this));
     }
 
     modifier step(uint8 _step) {
@@ -246,21 +246,27 @@ contract Migrator {
     }
 
     //add liquidity and calculate scx exchange rate for Behodler2
-    function step6(uint256 iterations) public {
-        require(stepCounter == 6, "MIGRATION: Incorrect step.");
-        uint256 stop = iterations + step6Index;
-        stop = stop > tokenCount ? tokenCount : stop;
+    function step6(uint256 iterations) public step(6) {
+        uint256 stop =
+            step6Index + iterations > tokenCount
+                ? tokenCount
+                : step6Index + iterations;
+
         Behodler2 behodler2 = Behodler2(Two.behodler);
 
         for (; step6Index < stop; step6Index++) {
             uint256 behodler1Balance = baseBalances[step6Index];
-            behodler2.addLiquidity(baseTokens[step6Index], behodler1Balance);
-        }
-        if (step6Index == tokenCount - 1) {
+                ERC20(baseTokens[step6Index]).approve(
+                    Two.behodler,
+                    behodler1Balance
+                );
+                behodler2.addLiquidity(baseTokens[step6Index], behodler1Balance);
+            }
+
+        if (stop==tokenCount) {
             bridge.recordExchangeRate();
             stepCounter++;
         }
-        stepCounter++;
     }
 
     //transfer to angband
