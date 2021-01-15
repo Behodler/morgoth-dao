@@ -236,6 +236,18 @@ describe('Migration', async function () {
         const bridge = contract.fromArtifact('ScarcityBridge', bridgeAddress)
         const exchangeRate = (await bridge.exchangeRate()).toString()
         assert.equal(exchangeRate, "10000")
+
+        await this.migrator.step7()
+        currentStep = (await this.migrator.stepCounter()).toNumber()
+        assert.equal(currentStep, 8)
+
+        await expectRevert(this.migrator.bail(), "MIGRATOR: it's too late to apologize");
+
+        const ownerOfBehodler2 = await this.behodler2.owner()
+        const ownerOfLachesis2 = await this.behodler2.owner()
+
+        assert.equal(ownerOfBehodler2, this.mockAngband.address)
+        assert.equal(ownerOfLachesis2, this.mockAngband.address)
     })
 
     it('allows bail before step 7', async () => {
