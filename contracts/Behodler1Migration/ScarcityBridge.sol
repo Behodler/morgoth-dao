@@ -39,9 +39,13 @@ contract ScarcityBridge {
         migrator = _migrator;
     }
 
+    function collectScarcity1BeforeBurning(uint scx) public {
+        totals.total_v1 +=scx;
+    }
+
     function recordExchangeRate() public {
         require(msg.sender == migrator);
-        totals.total_v1 = IERC20(totals.scarcity1).totalSupply();
+      //  totals.total_v1 = IERC20(totals.scarcity1).totalSupply();
         totals.total_v2 = IERC20(totals.scarcity2).totalSupply();
         exchangeRate = totals.total_v1 / totals.total_v2;
         totals.blockRecorded = block.number;

@@ -86,6 +86,23 @@ abstract contract ERC20 {
 }
 
 contract Migrator {
+    
+    event bailOnMigration(uint8 step);
+    event verifyOwnership(
+        uint256 step,
+        address behodler1,
+        address scarcity1,
+        address lachesis1,
+        address behodler2,
+        address lachesis2
+    );
+    event disableBehodler1(uint256 step);
+    event addDummyTokens(uint256 step);
+    event drainBehodler1(uint256 step);
+    event addTokensToLachesis2(uint256 step);
+    event addTokensAsLiquidity(uint256 step, uint256 scxExchangeRate);
+    event transferOwnershipToAngband(uint256 step, address angband);
+
     uint256 constant behodler1Factor = 128;
     uint8 public stepCounter = 1;
     ScarcityBridge public bridge;
@@ -151,6 +168,7 @@ contract Migrator {
 
         OwnableFacade(Two.behodler).transferOwnership(msg.sender);
         OwnableFacade(Two.lachesis).transferOwnership(msg.sender);
+        emit bailOnMigration(stepCounter);
     }
 
     function step1() public step(1) {
@@ -181,6 +199,14 @@ contract Migrator {
             Behodler2(Two.behodler).whiteListUsers(address(this)),
             "MIGRATION: Ensure that the migration contract is whitelisted on Behodler"
         );
+        emit verifyOwnership(
+            stepCounter,
+            One.behodler,
+            One.scarcity,
+            One.lachesis,
+            Two.behodler,
+            Two.lachesis
+        );
         stepCounter++;
     }
 
@@ -193,6 +219,7 @@ contract Migrator {
             lachesis.cut(tokens[i]); // checks that valid tokens have been passed in
             lachesis.measure(tokens[i], false);
         }
+        emit disableBehodler1(2);
         stepCounter++;
     }
 
@@ -203,6 +230,7 @@ contract Migrator {
             dummyTokens.push(token);
         }
         stepCounter++;
+        emit addDummyTokens(3);
     }
 
     //drain behodler1 of tokens
@@ -227,11 +255,15 @@ contract Migrator {
             uint256 scxGenerated =
                 behodler.buyScarcity(dummyTokens[step4Index], tokenBalance, 0);
             behodler.sellScarcity(baseTokens[step4Index], scxGenerated, 0);
+            bridge.collectScarcity1BeforeBurning(scxGenerated);
             lachesis.measure(dummyTokens[step4Index], false);
             lachesis.measure(baseTokens[step4Index], false);
         }
 
-        if (stop == tokenCount) stepCounter++;
+        if (stop == tokenCount) {
+            emit drainBehodler1(stepCounter);
+            stepCounter++;
+        }
     }
 
     //add tokens to Behodler2
@@ -242,6 +274,7 @@ contract Migrator {
             lachesis.measure(baseTokens[i], true, burnable);
             lachesis.updateBehodler(baseTokens[i]);
         }
+        emit addTokensToLachesis2(stepCounter);
         stepCounter++;
     }
 
@@ -256,15 +289,16 @@ contract Migrator {
 
         for (; step6Index < stop; step6Index++) {
             uint256 behodler1Balance = baseBalances[step6Index];
-                ERC20(baseTokens[step6Index]).approve(
-                    Two.behodler,
-                    behodler1Balance
-                );
-                behodler2.addLiquidity(baseTokens[step6Index], behodler1Balance);
-            }
+            ERC20(baseTokens[step6Index]).approve(
+                Two.behodler,
+                behodler1Balance
+            );
+            behodler2.addLiquidity(baseTokens[step6Index], behodler1Balance);
+        }
 
-        if (stop==tokenCount) {
+        if (stop == tokenCount) {
             bridge.recordExchangeRate();
+            emit addTokensAsLiquidity(stepCounter, bridge.exchangeRate());
             stepCounter++;
         }
     }
@@ -273,6 +307,7 @@ contract Migrator {
     function step7() public step(7) {
         OwnableFacade(Two.behodler).transferOwnership(angband);
         OwnableFacade(Two.lachesis).transferOwnership(angband);
+        emit transferOwnershipToAngband(stepCounter, angband);
         stepCounter++;
     }
 }

@@ -235,7 +235,7 @@ describe('Migration', async function () {
         const bridgeAddress = await this.migrator.bridge()
         const bridge = contract.fromArtifact('ScarcityBridge', bridgeAddress)
         const exchangeRate = (await bridge.exchangeRate()).toString()
-        assert.equal(exchangeRate, "10000")
+        assert.equal(exchangeRate, "5000")
 
         await this.migrator.step7()
         currentStep = (await this.migrator.stepCounter()).toNumber()
