@@ -4,8 +4,8 @@ import "./Secondary.sol";
 
 contract MockScarcity is Secondary {
     uint256 public totalSupply;
-    mapping(address => uint256) balances;
-    mapping(address => mapping(address => uint256)) approvals;
+    mapping(address => uint256) internal balances;
+    mapping(address => mapping(address => uint256)) internal approvals;
 
     function balanceOf(address holder) external view returns (uint256) {
         return balances[holder];

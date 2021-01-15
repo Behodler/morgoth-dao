@@ -69,19 +69,6 @@ describe('Migration', async function () {
 
         initialScarcityGenerated = await this.scarcity.totalSupply();
 
-        //set 3 tokens to valid on behodler2
-        await this.lachesis2.measure(this.token1.address, true, true);
-        await this.lachesis2.measure(this.token3.address, true, true);
-        await this.lachesis2.measure(this.token3.address, true, false);
-        await this.lachesis2.measure(this.weidai.address, true, true);
-        await this.lachesis2.measure(this.eye.address, true, true);
-
-        await this.lachesis2.updateBehodler(this.token1.address);
-        await this.lachesis2.updateBehodler(this.token2.address);
-        await this.lachesis2.updateBehodler(this.token3.address);
-        await this.lachesis2.updateBehodler(this.weidai.address);
-        await this.lachesis2.updateBehodler(this.eye.address);
-
         this.mockAngband = await MockAngband.new({ from: owner })
 
         this.migrator = await Migrator.new(this.behodler1.address,
@@ -141,20 +128,20 @@ describe('Migration', async function () {
 
         //assert positive token balances on behodler 1
         let token1BalanceOnBehodler1 = (await this.token1.balanceOf(this.behodler1.address)).toString()
-        assert.equal(token1BalanceOnBehodler1,'3000000000000000000000')
+        assert.equal(token1BalanceOnBehodler1, '3000000000000000000000')
 
         let token2BalanceOnBehodler1 = (await this.token2.balanceOf(this.behodler1.address)).toString()
-        assert.equal(token2BalanceOnBehodler1,'160000000000000000000')
-        
+        assert.equal(token2BalanceOnBehodler1, '160000000000000000000')
+
         let token3BalanceOnBehodler1 = (await this.token3.balanceOf(this.behodler1.address)).toString()
-        assert.equal(token3BalanceOnBehodler1,'2000000000000000000000')
-        
+        assert.equal(token3BalanceOnBehodler1, '2000000000000000000000')
+
         let weiDaiBalanceOnBehodler1 = (await this.weidai.balanceOf(this.behodler1.address)).toString()
-        assert.equal(weiDaiBalanceOnBehodler1,'500000000000000000000')
-        
+        assert.equal(weiDaiBalanceOnBehodler1, '500000000000000000000')
+
         let eyeBalanceOnBehodler1 = (await this.eye.balanceOf(this.behodler1.address)).toString()
-        assert.equal(eyeBalanceOnBehodler1,'90000000000000000000000')
-        
+        assert.equal(eyeBalanceOnBehodler1, '90000000000000000000000')
+
         await this.migrator.step4(2);
         await this.migrator.step4(2);
         await this.migrator.step4(4);
@@ -169,20 +156,58 @@ describe('Migration', async function () {
 
         //assert zero token balances on behodler1
         token1BalanceOnBehodler1 = (await this.token1.balanceOf(this.behodler1.address)).toString()
-        assert.equal(token1BalanceOnBehodler1,'0')
+        assert.equal(token1BalanceOnBehodler1, '0')
 
         token2BalanceOnBehodler1 = (await this.token2.balanceOf(this.behodler1.address)).toString()
-        assert.equal(token2BalanceOnBehodler1,'0')
-        
+        assert.equal(token2BalanceOnBehodler1, '0')
+
         token3BalanceOnBehodler1 = (await this.token3.balanceOf(this.behodler1.address)).toString()
-        assert.equal(token3BalanceOnBehodler1,'0')
-        
+        assert.equal(token3BalanceOnBehodler1, '0')
+
         weiDaiBalanceOnBehodler1 = (await this.weidai.balanceOf(this.behodler1.address)).toString()
-        assert.equal(weiDaiBalanceOnBehodler1,'0')
-        
+        assert.equal(weiDaiBalanceOnBehodler1, '0')
+
         eyeBalanceOnBehodler1 = (await this.eye.balanceOf(this.behodler1.address)).toString()
-        assert.equal(eyeBalanceOnBehodler1,'0')
-        
+        assert.equal(eyeBalanceOnBehodler1, '0')
+
+
+        await this.migrator.step5()
+        currentStep = (await this.migrator.stepCounter()).toNumber()
+        assert.equal(currentStep, 6)
+
+        const token1ValidOnBehodler2 = await this.behodler2.validTokens(this.token1.address)
+        const token1BurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.token1.address)
+
+        const token2ValidOnBehodler2 = await this.behodler2.validTokens(this.token2.address)
+        const token2BurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.token2.address)
+
+        const token3ValidOnBehodler2 = await this.behodler2.validTokens(this.token3.address)
+        const token3BurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.token3.address)
+
+        const token4ValidOnBehodler2 = await this.behodler2.validTokens(this.token4.address)
+        const token4BurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.token4.address)
+
+        const weiDaiValidOnBehodler2 = await this.behodler2.validTokens(this.weidai.address)
+        const weiDaiBurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.weidai.address)
+
+        const eyeValidOnBehodler2 = await this.behodler2.validTokens(this.eye.address)
+        const eyeBurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.eye.address)
+
+        //assert validity and burnability of tokens on behodler2
+        assert.isTrue(token1ValidOnBehodler2)
+        assert.isTrue(token2ValidOnBehodler2)
+        assert.isTrue(token3ValidOnBehodler2)
+        assert.isFalse(token4ValidOnBehodler2)
+        assert.isTrue(weiDaiValidOnBehodler2)
+        assert.isTrue(eyeValidOnBehodler2)
+
+        assert.isFalse(token1BurnableOnBehodler2)
+        assert.isFalse(token2BurnableOnBehodler2)
+        assert.isFalse(token3BurnableOnBehodler2)
+        assert.isFalse(token4BurnableOnBehodler2)
+        assert.isTrue(weiDaiBurnableOnBehodler2)
+        assert.isTrue(eyeBurnableOnBehodler2)
+
     })
 
     it('allows bail before step 7', async () => {

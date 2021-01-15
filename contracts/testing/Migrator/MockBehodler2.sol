@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.1;
 import "../../openzeppelin/Ownable.sol";
+import "./MockScarcity.sol";
 
 abstract contract ERC20 {
     function transferFrom(
@@ -24,8 +25,8 @@ contract MockBehodler2 is Ownable {
         lachesis = l;
     }
 
-    mapping(address => bool) burnable;
-    mapping(address => bool) valid;
+    mapping(address => bool) public tokenBurnable;
+    mapping(address => bool) public validTokens;
     mapping(address => bool) public whiteListUsers;
 
     function setValidToken(
@@ -34,8 +35,8 @@ contract MockBehodler2 is Ownable {
         bool _burnable
     ) public {
         require(msg.sender == lachesis, "Only lachesis");
-        burnable[token] = _burnable;
-        valid[token] = _valid;
+        tokenBurnable[token] = _burnable;
+        validTokens[token] = _valid;
     }
 
     function addLiquidity(address inputToken, uint256 amount) public payable {

@@ -245,6 +245,7 @@ contract Migrator {
         stepCounter++;
     }
 
+    //add liquidity and calculate scx exchange rate for Behodler2
     function step6(uint256 iterations) public {
         require(stepCounter == 6, "MIGRATION: Incorrect step.");
         uint256 stop = iterations + step6Index;
