@@ -13,7 +13,7 @@ const MockToken = contract.fromArtifact('MockToken')
 const MockAngband = contract.fromArtifact('MockAngband')
 
 const Migrator = contract.fromArtifact('Migrator')
-const ScarcityBridge = contract.fromArtifact('ScarcityBridge');
+const MockLoomTokenSwap = contract.fromArtifact('MockLoomTokenSwap')
 
 describe('Migration', async function () {
     const [owner, user2, user3, feeDestination] = accounts;
@@ -33,9 +33,12 @@ describe('Migration', async function () {
         this.token1 = await MockToken.new({ from: owner })
         await this.token1.mint(owner, "10000000000000000000000")
 
-        this.token2 = await MockToken.new({ from: owner })
-        await this.token2.mint(user2, "200000000000000000000")
+        this.oldLoom = await MockToken.new({ from: owner })
+        await this.oldLoom.mint(user2, "200000000000000000000")
 
+        this.newLoom  = await MockToken.new({from:owner});
+
+        this.loomSwap = await MockLoomTokenSwap.new(this.oldLoom.address,this.newLoom.address,{from:owner})
         this.token3 = await MockToken.new({ from: owner })
         await this.token3.mint(user3, "3500000000000000000000")
 
@@ -51,19 +54,19 @@ describe('Migration', async function () {
 
         //add 3 tokens to Behodler 1
         await this.lachesis1.measure(this.token1.address, true)
-        await this.lachesis1.measure(this.token2.address, true)
+        await this.lachesis1.measure(this.oldLoom.address, true)
         await this.lachesis1.measure(this.token3.address, true)
         await this.lachesis1.measure(this.weidai.address, true)
         await this.lachesis1.measure(this.eye.address, true)
 
         await this.token1.approve(this.behodler1.address, '100000000000000000000000', { from: owner })
-        await this.token2.approve(this.behodler1.address, '100000000000000000000000', { from: user2 })
+        await this.oldLoom.approve(this.behodler1.address, '100000000000000000000000', { from: user2 })
         await this.token3.approve(this.behodler1.address, '100000000000000000000000', { from: user3 })
         await this.weidai.approve(this.behodler1.address, '100000000000000000000000', { from: user2 })
         await this.eye.approve(this.behodler1.address, '100000000000000000000000', { from: owner })
 
         await this.behodler1.buyScarcity(this.token1.address, "3000000000000000000000", 0, { from: owner });
-        await this.behodler1.buyScarcity(this.token2.address, '160000000000000000000', 0, { from: user2 });
+        await this.behodler1.buyScarcity(this.oldLoom.address, '160000000000000000000', 0, { from: user2 });
         await this.behodler1.buyScarcity(this.token3.address, '2000000000000000000000', 0, { from: user3 });
         await this.behodler1.buyScarcity(this.weidai.address, '500000000000000000000', 0, { from: user2 });
         await this.behodler1.buyScarcity(this.eye.address, '90000000000000000000000', 0, { from: owner });
@@ -79,7 +82,9 @@ describe('Migration', async function () {
             this.lachesis2.address,
             this.weidai.address,
             this.eye.address,
-            this.mockAngband.address, { from: owner })
+            this.mockAngband.address,
+            this.loomSwap.address,
+            { from: owner })
 
 
         await this.migrator.initBridge();
@@ -112,14 +117,14 @@ describe('Migration', async function () {
         assert.equal(currentStep, 2)
 
         //STEP2
-        const tokens = [this.token1.address, this.token2.address, this.token3.address, this.weidai.address, this.eye.address]
+        const tokens = [this.token1.address, this.oldLoom.address, this.token3.address, this.weidai.address, this.eye.address]
         await this.migrator.step2(tokens)
         currentStep = (await this.migrator.stepCounter()).toNumber()
         assert.equal(currentStep, 3)
 
         //assert behodler 1 is invalid for those tokens
         await expectRevert(this.lachesis1.cut(this.token1.address), 'invalid token.')
-        await expectRevert(this.lachesis1.cut(this.token2.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.oldLoom.address), 'invalid token.')
         await expectRevert(this.lachesis1.cut(this.token3.address), 'invalid token.')
         await expectRevert(this.lachesis1.cut(this.token4.address), 'invalid token.')
         await expectRevert(this.lachesis1.cut(this.weidai.address), 'invalid token.')
@@ -131,8 +136,8 @@ describe('Migration', async function () {
         let token1BalanceOnBehodler1 = (await this.token1.balanceOf(this.behodler1.address)).toString()
         assert.equal(token1BalanceOnBehodler1, '3000000000000000000000')
 
-        let token2BalanceOnBehodler1 = (await this.token2.balanceOf(this.behodler1.address)).toString()
-        assert.equal(token2BalanceOnBehodler1, '160000000000000000000')
+        let oldLoomBalanceOnBehodler1 = (await this.oldLoom.balanceOf(this.behodler1.address)).toString()
+        assert.equal(oldLoomBalanceOnBehodler1, '160000000000000000000')
 
         let token3BalanceOnBehodler1 = (await this.token3.balanceOf(this.behodler1.address)).toString()
         assert.equal(token3BalanceOnBehodler1, '2000000000000000000000')
@@ -149,7 +154,7 @@ describe('Migration', async function () {
 
         //assert tokens still invalid on behodler1
         await expectRevert(this.lachesis1.cut(this.token1.address), 'invalid token.')
-        await expectRevert(this.lachesis1.cut(this.token2.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.oldLoom.address), 'invalid token.')
         await expectRevert(this.lachesis1.cut(this.token3.address), 'invalid token.')
         await expectRevert(this.lachesis1.cut(this.token4.address), 'invalid token.')
         await expectRevert(this.lachesis1.cut(this.weidai.address), 'invalid token.')
@@ -159,8 +164,8 @@ describe('Migration', async function () {
         token1BalanceOnBehodler1 = (await this.token1.balanceOf(this.behodler1.address)).toString()
         assert.equal(token1BalanceOnBehodler1, '0')
 
-        token2BalanceOnBehodler1 = (await this.token2.balanceOf(this.behodler1.address)).toString()
-        assert.equal(token2BalanceOnBehodler1, '0')
+        oldLoomBalanceOnBehodler1 = (await this.oldLoom.balanceOf(this.behodler1.address)).toString()
+        assert.equal(oldLoomBalanceOnBehodler1, '0')
 
         token3BalanceOnBehodler1 = (await this.token3.balanceOf(this.behodler1.address)).toString()
         assert.equal(token3BalanceOnBehodler1, '0')
@@ -179,8 +184,12 @@ describe('Migration', async function () {
         const token1ValidOnBehodler2 = await this.behodler2.validTokens(this.token1.address)
         const token1BurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.token1.address)
 
-        const token2ValidOnBehodler2 = await this.behodler2.validTokens(this.token2.address)
-        const token2BurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.token2.address)
+        const oldLoomValidOnBehodler2 = await this.behodler2.validTokens(this.oldLoom.address)
+        const oldLoomBurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.oldLoom.address)
+
+        const newLoomValidOnBehodler2 = await this.behodler2.validTokens(this.newLoom.address)
+        const newLoomBurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.newLoom.address)
+
 
         const token3ValidOnBehodler2 = await this.behodler2.validTokens(this.token3.address)
         const token3BurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.token3.address)
@@ -196,14 +205,15 @@ describe('Migration', async function () {
 
         //assert validity and burnability of tokens on behodler2
         assert.isTrue(token1ValidOnBehodler2)
-        assert.isTrue(token2ValidOnBehodler2)
+        assert.isFalse(oldLoomValidOnBehodler2)
+        assert.isTrue(newLoomValidOnBehodler2)
         assert.isTrue(token3ValidOnBehodler2)
         assert.isFalse(token4ValidOnBehodler2)
         assert.isTrue(weiDaiValidOnBehodler2)
         assert.isTrue(eyeValidOnBehodler2)
 
         assert.isFalse(token1BurnableOnBehodler2)
-        assert.isFalse(token2BurnableOnBehodler2)
+        assert.isFalse(oldLoomBurnableOnBehodler2)
         assert.isFalse(token3BurnableOnBehodler2)
         assert.isFalse(token4BurnableOnBehodler2)
         assert.isTrue(weiDaiBurnableOnBehodler2)
@@ -220,8 +230,11 @@ describe('Migration', async function () {
         let token1BalanceOnBehodler2 = (await this.token1.balanceOf(this.behodler2.address)).toString()
         assert.equal(token1BalanceOnBehodler2, '3000000000000000000000')
 
-        let token2BalanceOnBehodler2 = (await this.token2.balanceOf(this.behodler2.address)).toString()
-        assert.equal(token2BalanceOnBehodler2, '160000000000000000000')
+        let oldLoomBalanceOnBehodler2 = (await this.oldLoom.balanceOf(this.behodler2.address)).toString()
+        assert.equal(oldLoomBalanceOnBehodler2, '0')
+
+        let newLoomBalanceOnBehodler2 = (await this.newLoom.balanceOf(this.behodler2.address)).toString()
+        assert.equal(newLoomBalanceOnBehodler2, '160000000000000000000')
 
         let token3BalanceOnBehodler2 = (await this.token3.balanceOf(this.behodler2.address)).toString()
         assert.equal(token3BalanceOnBehodler2, '2000000000000000000000')

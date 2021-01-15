@@ -85,8 +85,18 @@ abstract contract ERC20 {
     function approve(address spender, uint256 amount) external virtual;
 }
 
+abstract contract LoomTokenSwap {
+    ERC20 public oldToken;
+    ERC20 public newToken;
+
+    /**
+     * @notice Swaps all the old LOOM held by the caller to new LOOM.
+     *         Emits Swap event if the swap is successful.
+     */
+    function swap() external virtual;
+}
+
 contract Migrator {
-    
     event bailOnMigration(uint8 step);
     event verifyOwnership(
         uint256 step,
@@ -116,6 +126,7 @@ contract Migrator {
     address eye;
     address angband;
     address deployer;
+    LoomTokenSwap loomSwap;
 
     version public One;
     version public Two;
@@ -134,7 +145,8 @@ contract Migrator {
         address lachesis2,
         address _weidai,
         address _eye,
-        address _angband
+        address _angband,
+        address loomTokenSwap
     ) {
         One.behodler = behodler1;
         One.scarcity = scarcity1;
@@ -147,6 +159,7 @@ contract Migrator {
         eye = _eye;
         angband = _angband;
         deployer = msg.sender;
+        loomSwap = LoomTokenSwap(loomTokenSwap);
     }
 
     function initBridge() public {
@@ -269,10 +282,14 @@ contract Migrator {
     //add tokens to Behodler2
     function step5() public step(5) {
         Lachesis2 lachesis = Lachesis2(Two.lachesis);
+        address oldLoomToken = address(loomSwap.oldToken());
+        address newLoomToken = address(loomSwap.newToken());
         for (uint8 i = 0; i < tokenCount; i++) {
             bool burnable = baseTokens[i] == weidai || baseTokens[i] == eye;
-            lachesis.measure(baseTokens[i], true, burnable);
-            lachesis.updateBehodler(baseTokens[i]);
+            address token =
+                baseTokens[i] == oldLoomToken ? newLoomToken : baseTokens[i];
+            lachesis.measure(token, true, burnable);
+            lachesis.updateBehodler(token);
         }
         emit addTokensToLachesis2(stepCounter);
         stepCounter++;
@@ -286,14 +303,18 @@ contract Migrator {
                 : step6Index + iterations;
 
         Behodler2 behodler2 = Behodler2(Two.behodler);
-
+        address oldLoom = address(loomSwap.oldToken());
         for (; step6Index < stop; step6Index++) {
             uint256 behodler1Balance = baseBalances[step6Index];
-            ERC20(baseTokens[step6Index]).approve(
-                Two.behodler,
-                behodler1Balance
-            );
-            behodler2.addLiquidity(baseTokens[step6Index], behodler1Balance);
+            address token = baseTokens[step6Index];
+            if (token == oldLoom) {
+                loomSwap.oldToken().approve(address(loomSwap),uint(-1));
+                loomSwap.swap();
+                token = address(loomSwap.newToken());
+            }
+
+            ERC20(token).approve(Two.behodler, behodler1Balance);
+            behodler2.addLiquidity(token, behodler1Balance);
         }
 
         if (stop == tokenCount) {
