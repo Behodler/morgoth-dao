@@ -207,9 +207,10 @@ contract Migrator {
 
     //drain behodler1 of tokens
     function step4(uint256 iterations) public step(4) {
-        require(stepCounter == 4, "MIGRATION: Incorrect step.");
         Lachesis1 lachesis = Lachesis1(One.lachesis);
         Behodler1 behodler = Behodler1(One.behodler);
+        ERC20(One.scarcity).approve(One.behodler, uint256(-1));
+
         uint256 stop =
             step4Index + iterations > tokenCount
                 ? tokenCount

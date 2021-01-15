@@ -137,6 +137,52 @@ describe('Migration', async function () {
         await expectRevert(this.lachesis1.cut(this.weidai.address), 'invalid token.')
         await expectRevert(this.lachesis1.cut(this.eye.address), 'invalid token.')
 
+        await this.migrator.step3();
+
+        //assert positive token balances on behodler 1
+        let token1BalanceOnBehodler1 = (await this.token1.balanceOf(this.behodler1.address)).toString()
+        assert.equal(token1BalanceOnBehodler1,'3000000000000000000000')
+
+        let token2BalanceOnBehodler1 = (await this.token2.balanceOf(this.behodler1.address)).toString()
+        assert.equal(token2BalanceOnBehodler1,'160000000000000000000')
+        
+        let token3BalanceOnBehodler1 = (await this.token3.balanceOf(this.behodler1.address)).toString()
+        assert.equal(token3BalanceOnBehodler1,'2000000000000000000000')
+        
+        let weiDaiBalanceOnBehodler1 = (await this.weidai.balanceOf(this.behodler1.address)).toString()
+        assert.equal(weiDaiBalanceOnBehodler1,'500000000000000000000')
+        
+        let eyeBalanceOnBehodler1 = (await this.eye.balanceOf(this.behodler1.address)).toString()
+        assert.equal(eyeBalanceOnBehodler1,'90000000000000000000000')
+        
+        await this.migrator.step4(2);
+        await this.migrator.step4(2);
+        await this.migrator.step4(4);
+
+        //assert tokens still invalid on behodler1
+        await expectRevert(this.lachesis1.cut(this.token1.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.token2.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.token3.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.token4.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.weidai.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.eye.address), 'invalid token.')
+
+        //assert zero token balances on behodler1
+        token1BalanceOnBehodler1 = (await this.token1.balanceOf(this.behodler1.address)).toString()
+        assert.equal(token1BalanceOnBehodler1,'0')
+
+        token2BalanceOnBehodler1 = (await this.token2.balanceOf(this.behodler1.address)).toString()
+        assert.equal(token2BalanceOnBehodler1,'0')
+        
+        token3BalanceOnBehodler1 = (await this.token3.balanceOf(this.behodler1.address)).toString()
+        assert.equal(token3BalanceOnBehodler1,'0')
+        
+        weiDaiBalanceOnBehodler1 = (await this.weidai.balanceOf(this.behodler1.address)).toString()
+        assert.equal(weiDaiBalanceOnBehodler1,'0')
+        
+        eyeBalanceOnBehodler1 = (await this.eye.balanceOf(this.behodler1.address)).toString()
+        assert.equal(eyeBalanceOnBehodler1,'0')
+        
     })
 
     it('allows bail before step 7', async () => {
