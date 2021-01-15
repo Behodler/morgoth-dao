@@ -21,11 +21,11 @@ import "./ScarcityBridge.sol";
     7. Transfer ownership of Behodler2 and Lachesis2 to Angband.
  */
 
-abstract contract Secondary {
+abstract contract SecondaryFacade {
     function primary() public view virtual returns (address);
 }
 
-abstract contract Ownable {
+abstract contract OwnableFacade {
     function owner() public view virtual returns (address);
 
     function transferOwnership(address newOwner) public virtual;
@@ -141,24 +141,24 @@ contract Migrator {
     function step1() public step(1) {
         address self = address(this);
         require(
-            Secondary(One.behodler).primary() == self,
+            SecondaryFacade(One.behodler).primary() == self,
             "MIGRATION: behodler1 owner mismatch"
         );
         require(
-            Secondary(One.scarcity).primary() == self,
+            SecondaryFacade(One.scarcity).primary() == self,
             "MIGRATION: scarcity1 owner mismatch"
         );
         require(
-            Secondary(One.lachesis).primary() == self,
+            SecondaryFacade(One.lachesis).primary() == self,
             "MIGRATION: lachesis1 owner mismatch"
         );
 
         require(
-            Ownable(Two.behodler).owner() == self,
+            OwnableFacade(Two.behodler).owner() == self,
             "MIGRATION: behodler2 owner mismatch"
         );
         require(
-            Ownable(Two.lachesis).owner() == self,
+            OwnableFacade(Two.lachesis).owner() == self,
             "MIGRATION: lachesis2 owner mismatch"
         );
 
@@ -239,8 +239,7 @@ contract Migrator {
 
     //transfer to angband
     function step7() public step(7) {
-        Ownable(Two.behodler).transferOwnership(angband);
-        Ownable(Two.lachesis).transferOwnership(angband);
+        OwnableFacade(Two.behodler).transferOwnership(angband);
+        OwnableFacade(Two.lachesis).transferOwnership(angband);
     }
-
 }
