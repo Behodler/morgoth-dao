@@ -18,7 +18,7 @@ const ScarcityBridge = contract.fromArtifact('ScarcityBridge');
 describe('Migration', async function () {
     const [owner, user2, user3, feeDestination] = accounts;
     let initialScarcityGenerated;
-    before(async function () {
+    beforeEach(async function () {
         //construct
         this.scarcity = await Scarcity1.new({ from: owner })
         this.lachesis1 = await Lachesis1.new({ from: owner })
@@ -79,7 +79,7 @@ describe('Migration', async function () {
             this.lachesis2.address,
             this.weidai.address,
             this.eye.address,
-            this.mockAngband.address)
+            this.mockAngband.address, { from: owner })
 
 
         await this.migrator.initBridge();
@@ -241,7 +241,7 @@ describe('Migration', async function () {
         currentStep = (await this.migrator.stepCounter()).toNumber()
         assert.equal(currentStep, 8)
 
-        await expectRevert(this.migrator.bail(), "MIGRATOR: it's too late to apologize");
+        await expectRevert(this.migrator.bail({ from: owner }), "MIGRATOR: it's too late to apologize");
 
         const ownerOfBehodler2 = await this.behodler2.owner()
         const ownerOfLachesis2 = await this.behodler2.owner()
@@ -250,7 +250,45 @@ describe('Migration', async function () {
         assert.equal(ownerOfLachesis2, this.mockAngband.address)
     })
 
-    it('allows bail before step 7', async () => {
+    it('allows bail before step 7', async function () {
+        //STEP1
+        await expectRevert(this.migrator.step1(), "MIGRATION: behodler1 owner mismatch")
+        await this.behodler1.transferPrimary(this.migrator.address, { from: owner })
 
+        await expectRevert(this.migrator.step1(), "MIGRATION: scarcity1 owner mismatch")
+        await this.scarcity.transferPrimary(this.migrator.address, { from: owner })
+
+        await expectRevert(this.migrator.step1(), "MIGRATION: lachesis1 owner mismatch")
+        await this.lachesis1.transferPrimary(this.migrator.address, { from: owner })
+
+        await expectRevert(this.migrator.step1(), "MIGRATION: behodler2 owner mismatch")
+        await this.behodler2.transferOwnership(this.migrator.address, { from: owner })
+
+        await expectRevert(this.migrator.step1(), "MIGRATION: lachesis2 owner mismatch")
+        await this.lachesis2.transferOwnership(this.migrator.address, { from: owner })
+
+        await expectRevert(this.migrator.step1(), "Ensure that the migration contract is whitelisted on Behodler")
+        await this.behodler2.setWhiteListUsers(this.migrator.address, true)
+
+        await this.migrator.step1()
+
+        let currentStep = (await this.migrator.stepCounter()).toNumber()
+        assert.equal(currentStep, 2)
+
+        //bail
+        await expectRevert(this.migrator.bail({ from: user2 }), "MIGRATOR: only deployer can call")
+        await this.migrator.bail({ from: owner });
+        const primaryOfBehodler1 = await this.behodler1.primary()
+        const primaryOfLachesis1 = await this.lachesis1.primary()
+        const primaryOfScarcity1 = await this.scarcity.primary()
+
+        const ownerOfBehodler2 = await this.behodler2.owner()
+        const ownerOfLachesis2 = await this.behodler2.owner()
+
+        assert.equal(primaryOfBehodler1, owner)
+        assert.equal(primaryOfLachesis1, owner)
+        assert.equal(primaryOfScarcity1, owner)
+        assert.equal(ownerOfBehodler2, owner)
+        assert.equal(ownerOfLachesis2, owner)
     })
 })
