@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.1;
 import "./MockBehodler2.sol";
+import "../../openzeppelin/Ownable.sol";
 
-contract MockLachesis2 {
+contract MockLachesis2 is Ownable {
     MockBehodler2 behodler;
 
     mapping (address=>bool) burnable;

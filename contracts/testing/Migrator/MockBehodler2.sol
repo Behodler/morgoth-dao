@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.1;
+import "../../openzeppelin/Ownable.sol";
 
 abstract contract ERC20 {
     function transferFrom(
@@ -14,7 +15,7 @@ abstract contract ERC20 {
         returns (bool);
 }
 
-contract MockBehodler2 {
+contract MockBehodler2 is Ownable {
     address lachesis;
     uint256 public totalSupply;
     mapping(address => uint256) balances;

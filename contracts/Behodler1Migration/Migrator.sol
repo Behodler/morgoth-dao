@@ -85,7 +85,7 @@ abstract contract ERC20 {
 
 contract Migrator {
     uint256 constant behodler1Factor = 128;
-    uint8 stepCounter = 1;
+    uint8 public stepCounter = 1;
     ScarcityBridge public bridge;
     struct version {
         address behodler;
@@ -135,7 +135,6 @@ contract Migrator {
     modifier step(uint8 _step) {
         require(stepCounter == _step, "MIGRATION: Incorrect step.");
         _;
-        stepCounter++;
     }
 
     function step1() public step(1) {
@@ -162,7 +161,8 @@ contract Migrator {
             "MIGRATION: lachesis2 owner mismatch"
         );
 
-        require(Behodler2(Two.behodler).whiteListUsers(address(this)),"MIGRATION: Ensure that the migration contract is whitelisted on Behodler.");
+        require(Behodler2(Two.behodler).whiteListUsers(address(this)),"MIGRATION: Ensure that the migration contract is whitelisted on Behodler");
+        stepCounter++;
     }
 
     function step2(address[] calldata tokens) public step(2) {
@@ -173,6 +173,7 @@ contract Migrator {
             lachesis.cut(tokens[i]); // checks that valid tokens have been passed in
             lachesis.measure(tokens[i], false);
         }
+        stepCounter++;
     }
 
     //add dummy tokens deploy
@@ -181,10 +182,11 @@ contract Migrator {
             address token = address(new DummyToken());
             dummyTokens.push(token);
         }
+        stepCounter++;
     }
 
     //drain behodler1 of tokens
-    function step4(uint256 iterations) public {
+    function step4(uint256 iterations) public step(4) {
         require(stepCounter == 4, "MIGRATION: Incorrect step.");
         Lachesis1 lachesis = Lachesis1(One.lachesis);
         Behodler1 behodler = Behodler1(One.behodler);
@@ -219,6 +221,7 @@ contract Migrator {
             lachesis.measure(baseTokens[i], true, burnable);
             lachesis.updateBehodler(baseTokens[i]);
         }
+        stepCounter++;
     }
 
     function step6(uint256 iterations) public{
@@ -235,11 +238,13 @@ contract Migrator {
             bridge.recordExchangeRate();
             stepCounter++;
         }
+        stepCounter++;
     }
 
     //transfer to angband
     function step7() public step(7) {
         OwnableFacade(Two.behodler).transferOwnership(angband);
         OwnableFacade(Two.lachesis).transferOwnership(angband);
+        stepCounter++;
     }
 }

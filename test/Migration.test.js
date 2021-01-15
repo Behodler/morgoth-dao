@@ -92,11 +92,35 @@ describe('Migration', async function () {
             this.weidai.address,
             this.eye.address,
             this.mockAngband.address)
-            
-        await this.behodler2.setWhiteListUsers(this.migrator.address, true)
+
+
+        await this.migrator.initBridge();
     })
 
     it('migrates from Behodler1 to Behodler2', async function () {
 
+        //transfer ownership of contracts to migrator
+        await expectRevert(this.migrator.step1(), "MIGRATION: behodler1 owner mismatch")
+        await this.behodler1.transferPrimary(this.migrator.address, { from: owner })
+
+        await expectRevert(this.migrator.step1(), "MIGRATION: scarcity1 owner mismatch")
+        await this.scarcity.transferPrimary(this.migrator.address, { from: owner })
+
+        await expectRevert(this.migrator.step1(), "MIGRATION: lachesis1 owner mismatch")
+        await this.lachesis1.transferPrimary(this.migrator.address, { from: owner })
+
+        await expectRevert(this.migrator.step1(), "MIGRATION: behodler2 owner mismatch")
+        await this.behodler2.transferOwnership(this.migrator.address, { from: owner })
+
+        await expectRevert(this.migrator.step1(), "MIGRATION: lachesis2 owner mismatch")
+        await this.lachesis2.transferOwnership(this.migrator.address, { from: owner })
+
+        await expectRevert(this.migrator.step1(), "Ensure that the migration contract is whitelisted on Behodler")
+        await this.behodler2.setWhiteListUsers(this.migrator.address, true)
+
+        await this.migrator.step1()
+
+        let currentStep = (await this.migrator.stepCounter()).toNumber()
+        assert.equal(currentStep, 2)
     })
 })

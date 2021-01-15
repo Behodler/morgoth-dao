@@ -2,7 +2,7 @@
 pragma solidity ^0.7.1;
 import "./Secondary.sol";
 
-contract MockLachesis1{
+contract MockLachesis1 is Secondary{
 mapping (address => bool) public tokens;
 
 	function measure (address token, bool valid) external {
