@@ -99,7 +99,7 @@ describe('Migration', async function () {
 
     it('migrates from Behodler1 to Behodler2', async function () {
 
-        //transfer ownership of contracts to migrator
+        //STEP1
         await expectRevert(this.migrator.step1(), "MIGRATION: behodler1 owner mismatch")
         await this.behodler1.transferPrimary(this.migrator.address, { from: owner })
 
@@ -122,5 +122,24 @@ describe('Migration', async function () {
 
         let currentStep = (await this.migrator.stepCounter()).toNumber()
         assert.equal(currentStep, 2)
+
+        //STEP2
+        const tokens = [this.token1.address, this.token2.address, this.token3.address, this.weidai.address, this.eye.address]
+        await this.migrator.step2(tokens)
+        currentStep = (await this.migrator.stepCounter()).toNumber()
+        assert.equal(currentStep, 3)
+
+        //assert behodler 1 is invalid for those tokens
+        await expectRevert(this.lachesis1.cut(this.token1.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.token2.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.token3.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.token4.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.weidai.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.eye.address), 'invalid token.')
+
+    })
+
+    it('allows bail before step 7', async () => {
+
     })
 })

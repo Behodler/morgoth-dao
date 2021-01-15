@@ -23,6 +23,8 @@ import "./ScarcityBridge.sol";
 
 abstract contract SecondaryFacade {
     function primary() public view virtual returns (address);
+
+    function transferPrimary(address recipient) public virtual;
 }
 
 abstract contract OwnableFacade {
@@ -62,7 +64,7 @@ abstract contract Behodler2 {
         payable
         virtual;
 
-    function whiteListUsers(address user) public virtual view returns (bool);
+    function whiteListUsers(address user) public view virtual returns (bool);
 }
 
 abstract contract Lachesis2 {
@@ -96,6 +98,7 @@ contract Migrator {
     address weidai;
     address eye;
     address angband;
+    address deployer;
 
     version public One;
     version public Two;
@@ -126,6 +129,7 @@ contract Migrator {
         weidai = _weidai;
         eye = _eye;
         angband = _angband;
+        deployer = msg.sender;
     }
 
     function initBridge() public {
@@ -135,6 +139,18 @@ contract Migrator {
     modifier step(uint8 _step) {
         require(stepCounter == _step, "MIGRATION: Incorrect step.");
         _;
+    }
+
+    function bail() public {
+        require(msg.sender == deployer, "MIGRATOR: only deployer can call");
+        require(stepCounter < 7, "MIGRATOR: it's too late to apologize");
+
+        SecondaryFacade(One.behodler).transferPrimary(msg.sender);
+        SecondaryFacade(One.scarcity).transferPrimary(msg.sender);
+        SecondaryFacade(One.lachesis).transferPrimary(msg.sender);
+
+        OwnableFacade(Two.behodler).transferOwnership(msg.sender);
+        OwnableFacade(Two.lachesis).transferOwnership(msg.sender);
     }
 
     function step1() public step(1) {
@@ -161,10 +177,14 @@ contract Migrator {
             "MIGRATION: lachesis2 owner mismatch"
         );
 
-        require(Behodler2(Two.behodler).whiteListUsers(address(this)),"MIGRATION: Ensure that the migration contract is whitelisted on Behodler");
+        require(
+            Behodler2(Two.behodler).whiteListUsers(address(this)),
+            "MIGRATION: Ensure that the migration contract is whitelisted on Behodler"
+        );
         stepCounter++;
     }
 
+    //disable tokens on Behodler1
     function step2(address[] calldata tokens) public step(2) {
         baseTokens = tokens;
         Lachesis1 lachesis = Lachesis1(One.lachesis);
@@ -224,7 +244,7 @@ contract Migrator {
         stepCounter++;
     }
 
-    function step6(uint256 iterations) public{
+    function step6(uint256 iterations) public {
         require(stepCounter == 6, "MIGRATION: Incorrect step.");
         uint256 stop = iterations + step6Index;
         stop = stop > tokenCount ? tokenCount : stop;
@@ -232,7 +252,7 @@ contract Migrator {
 
         for (; step6Index < stop; step6Index++) {
             uint256 behodler1Balance = baseBalances[step6Index];
-            behodler2.addLiquidity(baseTokens[step6Index],behodler1Balance);
+            behodler2.addLiquidity(baseTokens[step6Index], behodler1Balance);
         }
         if (step6Index == tokenCount - 1) {
             bridge.recordExchangeRate();
