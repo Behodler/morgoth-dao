@@ -34,7 +34,7 @@ Dispute resolution in Morgoth is at once simple and effective. The mechanism is 
 
 ## Dispute mechanism
 
-Suppose a Ungoliant wishes to set the burn fee on Scarcity to 10% on the grounds that this will promote the functioning of Liquid Vault. The first thing that Ungoliant needs is the CONFIGURE_SCARCITY power. From there Ungoliant must create a power invoker for CONFIGURE_SCARCITY which sets the fee to 100 (the total is 1000). From there the power invoker needs to be authorized on Angband by someone with the AUTHORIZE_INVOKER power. In this case, we will only authorize power invokers that are disputable. Ungoliant observes the current price of a decision on the temporal bonding curve and notes it is 20 EYE. To be safe, they load the power invoker with 30 EYE. 
+Suppose Ungoliant wishes to set the burn fee on Scarcity to 10% on the grounds that this will promote the functioning of Liquid Vault. The first thing that Ungoliant needs is the CONFIGURE_SCARCITY power. From there Ungoliant must create a power invoker for CONFIGURE_SCARCITY which sets the fee to 100 (the total is 1000). From there the power invoker needs to be authorized on Angband by someone with the AUTHORIZE_INVOKER power. In this case, we will only authorize power invokers that are disputable. Ungoliant observes the current price of a decision on the temporal bonding curve and notes it is 20 EYE. To be safe, they load the power invoker with 30 EYE. 
 The user then invokes the power through Angband. 
 At the time of invocation in our fictional scenario, the price of decisions is 25 EYE so the invocation succeeds. 
 An event is emitted allowing other minions to scan through a service such as The Graph that a pending decision is in the pipeline.
@@ -43,7 +43,7 @@ In our example Sauron is controlled by a simple democracy DAO, Barad-dûr. The p
 At this point the dispute timeout is reset. 
 We now enter a phase in which the defendant and the plaintiff must each select a judge from the remaining minions within a given timeout. Failure to do so results in forefeiting deposit, part of which is burnt, the rest given to the winning party.
 
-If they both successfully select judges, the judges are each requested to bond half of the dispute price. This is held against them failing to adjudicate in time. The judges must then confer and together agree on a third judge. 
+If they both successfully select judges, the judges are each requested to bond half of the dispute price. This is held against them failing to adjudicate in time. The two judges then have to select a third. They must both agree on a third. This forces all three judges to be as fair as possible through game theoretic incentices. The judges must then confer and together agree on a third judge. 
 The final verdict must be unanimous.
 
 ### Outcomes
