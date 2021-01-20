@@ -3,19 +3,23 @@ pragma solidity ^0.7.1;
 import "./Powers.sol";
 import "./Thangorodrim.sol";
 import "./openzeppelin/Ownable.sol";
+import "./IronCrown.sol";
+import "./Behodler1Migration/ERC20.sol";
 
 contract Angband is Empowered, Thangorodrim {
     event EmergencyShutdownTriggered(address newOwner);
     uint256 emergencyCoolDownPeriod;
     address deployer;
     mapping(address => bool) public authorizedInvokers;
+    IronCrown public ironCrown;
 
     constructor(address _powers) {
         powersRegistry = PowersRegistry(_powers);
         _setAddress("POWERREGISTRY", _powers);
         deployer = msg.sender;
         emergencyCoolDownPeriod = block.timestamp + 66 days;
-
+        ironCrown = new IronCrown(_powers);
+        _setAddress(IRON_CROWN, address(ironCrown));
         initialized = true;
     }
 
@@ -84,6 +88,7 @@ contract Angband is Empowered, Thangorodrim {
             Ownable(lachesis).owner() == self,
             "MORGOTH: transfer Lachesis ownership to Angband"
         );
+        ironCrown.setSCX(behodler);
     }
 
     function executePower(address powerInvoker)
@@ -122,5 +127,13 @@ contract Angband is Empowered, Thangorodrim {
         Ownable(behodler).transferOwnership(deployer);
         Ownable(lachesis).transferOwnership(deployer);
         emit EmergencyShutdownTriggered(deployer);
+    }
+
+    function withdrawSCX(uint256 amount)
+        public
+        requiresPower(powersRegistry.TREASURER())
+    {
+        address scx = getAddress(BEHODLER);
+        ERC20(scx).transfer(msg.sender, amount);
     }
 }

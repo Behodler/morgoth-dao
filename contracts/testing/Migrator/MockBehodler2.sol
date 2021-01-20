@@ -2,19 +2,7 @@
 pragma solidity ^0.7.1;
 import "../../openzeppelin/Ownable.sol";
 import "./MockScarcity.sol";
-
-abstract contract ERC20 {
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 value
-    ) external virtual returns (bool);
-
-    function transfer(address recipient, uint256 value)
-        external
-        virtual
-        returns (bool);
-}
+import "../../Behodler1Migration/ERC20.sol";
 
 contract MockBehodler2 is Ownable {
     address lachesis;
@@ -33,8 +21,7 @@ contract MockBehodler2 is Ownable {
         uint256 transferFee,
         uint256 burnFee,
         address feeDestination
-    ) public onlyOwner {
-    }
+    ) public onlyOwner {}
 
     function setValidToken(
         address token,
@@ -44,6 +31,10 @@ contract MockBehodler2 is Ownable {
         require(msg.sender == lachesis, "Only lachesis");
         tokenBurnable[token] = _burnable;
         validTokens[token] = _valid;
+    }
+
+    function balanceOf(address holder) external view returns (uint){
+        return balances[holder];
     }
 
     function addLiquidity(address inputToken, uint256 amount) public payable {

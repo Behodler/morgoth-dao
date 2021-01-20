@@ -3,16 +3,8 @@ pragma solidity ^0.7.1;
 import "./Secondary.sol";
 import "./MockScarcity.sol";
 import "./MockLachesis1.sol";
+import "../../Behodler1Migration/ERC20.sol";
 
-abstract contract ERC20 {
-        function transferFrom(
-        address sender,
-        address recipient,
-        uint256 value
-    ) external virtual returns (bool) ;
-
-    function transfer(address recipient, uint value) external virtual returns (bool);
-}
 contract MockBehodler1 is Secondary{
     MockScarcity scarcity;
     MockLachesis1 lachesis;

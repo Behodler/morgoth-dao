@@ -2,7 +2,7 @@
 pragma solidity ^0.7.1;
 import "./DummyToken.sol";
 import "./ScarcityBridge.sol";
-
+import "./ERC20.sol";
 /*
     Each step has to be completed in order. Each step is represented by a public function. 
     A step counter is incremented to prevent out of order step execution
@@ -77,13 +77,6 @@ abstract contract Lachesis2 {
     function updateBehodler(address token) public virtual;
 }
 
-abstract contract ERC20 {
-    function balanceOf(address holder) external view virtual returns (uint256);
-
-    function mint(address recipient, uint256 value) public virtual;
-
-    function approve(address spender, uint256 amount) external virtual;
-}
 
 abstract contract LoomTokenSwap {
     ERC20 public oldToken;
