@@ -11,7 +11,7 @@ interface BurnableERC20 {
 }
 
 contract IronCrown is Empowered {
-    BurnableERC20 scx;
+    BurnableERC20 public scx;
     struct Silmaril {
         uint16 percentage; //0-1000
         address exit;
@@ -33,24 +33,24 @@ contract IronCrown is Empowered {
     }
 
     function settlePayments() public {
-         uint256 balance = scx.balanceOf(address(this));
+        uint256 balance = scx.balanceOf(address(this));
         if (balance == 0) return;
         for (uint8 i = 0; i < 3; i++) {
             Silmaril memory silmaril = silmarils[i];
             uint256 share = (balance * silmaril.percentage) / 1000;
-            if (address(silmarils[i].exit) == address(0)) {
+            if (address(silmaril.exit) == address(0)) {
                 scx.burn(share);
             } else {
-                scx.transfer(silmarils[i].exit, share);
+                scx.transfer(silmaril.exit, share);
             }
         }
     }
 
     function setSilmaril(
         uint8 index,
-        uint8 percentage,
+        uint16 percentage,
         address exit
-    ) external {
+    ) external onlyOwner {
         require(index < 3, "MORGOTH: index out of bounds");
         settlePayments();
         silmarils[index].percentage = percentage;
@@ -64,7 +64,11 @@ contract IronCrown is Empowered {
         silmarils[index].exit = exit;
     }
 
-    function getSilmaril(uint256 index) external view returns (uint16, address) {
+    function getSilmaril(uint256 index)
+        external
+        view
+        returns (uint16, address)
+    {
         return (silmarils[index].percentage, silmarils[index].exit);
     }
 }

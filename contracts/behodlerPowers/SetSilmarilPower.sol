@@ -5,7 +5,7 @@ import "../Powers.sol";
 interface IronCrownFacade {
     function setSilmaril(
         uint8 index,
-        uint8 percentage,
+        uint16 percentage,
         address exit
     ) external;
 }
@@ -13,7 +13,7 @@ interface IronCrownFacade {
 contract SetSilmarilPower is PowerInvoker {
     struct Parameters {
         uint8 index;
-        uint8 percentage;
+        uint16 percentage;
         address exit;
     }
     Parameters parameters;
@@ -24,7 +24,7 @@ contract SetSilmarilPower is PowerInvoker {
 
     function parameterize(
         uint8 index,
-        uint8 percentage,
+        uint16 percentage,
         address exit
     ) public {
         parameters.exit = exit;
@@ -33,7 +33,8 @@ contract SetSilmarilPower is PowerInvoker {
     }
 
     function orchestrate() internal override returns (bool) {
-         IronCrownFacade ironCrown = IronCrownFacade(angband.getAddress(power.domain));
+        IronCrownFacade ironCrown =
+            IronCrownFacade(angband.getAddress(power.domain));
         ironCrown.setSilmaril(
             parameters.index,
             parameters.percentage,

@@ -33,8 +33,21 @@ contract MockBehodler2 is Ownable {
         validTokens[token] = _valid;
     }
 
-    function balanceOf(address holder) external view returns (uint){
+    function balanceOf(address holder) external view returns (uint256) {
         return balances[holder];
+    }
+
+    function mint(address recipient, uint256 amount) public {
+        balances[recipient] += amount;
+    }
+
+    function transfer(address recipient, uint256 amount)
+        external
+        returns (bool)
+    {
+        balances[msg.sender] -= amount;
+        balances[recipient] += amount;
+        return true;
     }
 
     function addLiquidity(address inputToken, uint256 amount) public payable {
