@@ -3,6 +3,7 @@ pragma solidity ^0.7.1;
 import "./DummyToken.sol";
 import "./ScarcityBridge.sol";
 import "./ERC20.sol";
+
 /*
     Each step has to be completed in order. Each step is represented by a public function. 
     A step counter is incremented to prevent out of order step execution
@@ -76,7 +77,6 @@ abstract contract Lachesis2 {
 
     function updateBehodler(address token) public virtual;
 }
-
 
 abstract contract LoomTokenSwap {
     ERC20 public oldToken;
@@ -275,8 +275,12 @@ contract Migrator {
     //add tokens to Behodler2
     function step5() public step(5) {
         Lachesis2 lachesis = Lachesis2(Two.lachesis);
-        address oldLoomToken = address(loomSwap.oldToken());
-        address newLoomToken = address(loomSwap.newToken());
+        address oldLoomToken = address(0);
+        address newLoomToken = address(0);
+        if (address(loomSwap) != address(0)) {
+            oldLoomToken = address(loomSwap.oldToken());
+            newLoomToken = address(loomSwap.newToken());
+        }
         for (uint8 i = 0; i < tokenCount; i++) {
             bool burnable = baseTokens[i] == weidai || baseTokens[i] == eye;
             address token =
@@ -301,7 +305,7 @@ contract Migrator {
             uint256 behodler1Balance = baseBalances[step6Index];
             address token = baseTokens[step6Index];
             if (token == oldLoom) {
-                loomSwap.oldToken().approve(address(loomSwap),uint(-1));
+                loomSwap.oldToken().approve(address(loomSwap), uint256(-1));
                 loomSwap.swap();
                 token = address(loomSwap.newToken());
             }

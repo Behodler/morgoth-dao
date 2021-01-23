@@ -222,7 +222,7 @@ contract PowersRegistry is Empowered {
         powerIsInMinion[power][fromMinion] = false;
         minionHasPower[fromMinion][power] = false;
 
-        _spread(currentPower, power, minion_to);
+        _spread(power, minion_to);
     }
 
     function spread(bytes32 power, bytes32 minion_to)
@@ -231,11 +231,10 @@ contract PowersRegistry is Empowered {
     {
         Power memory currentPower = powers[power];
         require(!currentPower.unique, "MORGOTH: power not divisible.");
-        _spread(currentPower, power, minion_to);
+        _spread(power, minion_to);
     }
 
     function _spread(
-        Power memory power,
         bytes32 name,
         bytes32 minion_to
     ) internal {
