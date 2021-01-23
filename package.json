@@ -9,12 +9,13 @@
   "scripts": {
     "compile": "touch build/contracts/horse && rm -rf build/contracts/* && truffle compile",
     "test": "touch build/contracts/horse.txt && rm build/contracts/* && npm run compile && mocha --exit --recursive --timeout 10000",
-    "test:Angband":"npm test test/Angband.test.js",    
-    "test:Migration":"npm test test/Migration.test.js",   
-    "test:Powers":"npm test test/Powers.test.js",   
-    "test:IronCrown":"rm -rf build/contracts/* && truffle compile && cp build/contracts/IronCrown.json test/ABI/IronCrown.json && truffle test test/IronCrown.test.js",  
-    "test:zeppelin":"npm run test:Angband && npm run test:Migration && npm run test:Powers",
-    "test:all":"npm run test:zeppelin && cp build/contracts/IronCrown.json test/ABI/IronCrown.json && truffle test test/IronCrown.test.js",
+    "test:Angband": "npm test test/Angband.test.js",
+    "test:Migration": "npm test test/Migration.test.js",
+    "test:Powers": "npm test test/Powers.test.js",
+    "test:IronCrown": "rm -rf build/contracts/* && truffle compile && cp build/contracts/IronCrown.json test/ABI/IronCrown.json && truffle test test/IronCrown.test.js",
+    "test:AddToken": "rm -rf build/contracts/* && truffle test test/AddTokenToBehodler.test.js",
+    "test:zeppelin": "npm run test:Angband && npm run test:Migration && npm run test:Powers",
+    "test:all": "npm run test:zeppelin && cp build/contracts/IronCrown.json test/ABI/IronCrown.json && truffle test test/IronCrown.test.js && truffle test test/AddTokenToBehodler.test.js",
     "mocha": "mocha"
   },
   "repository": {
