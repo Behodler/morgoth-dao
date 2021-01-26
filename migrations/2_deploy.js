@@ -22,7 +22,7 @@ module.exports = async function (deployer, network, accounts) {
 
     const melkorOption = { from: Melkor }
     await deployer.deploy(MockLiquidityReceiver)
-    const mockeLiquidityReceiverInstance = await MockLiquidityReceiver.deployed()
+    const mockLiquidityReceiverInstance = await MockLiquidityReceiver.deployed()
     //create and seed powers
     await deployer.deploy(PowersRegistry, melkorOption)
     const powersRegistryInstance = await PowersRegistry.deployed()
@@ -86,7 +86,7 @@ module.exports = async function (deployer, network, accounts) {
     console.log(`weidai ${weidai} dai ${dai} eye ${eye}`)
     console.log(`behodler1 ${behodler1} scarcity1 ${scarcity1} lachesis1 ${lachesis1} behodler2 ${behodler2} lachesis2 ${lachesis2}`)
     //Migrator
-    await deployer.deploy(Migrator, behodler1, scarcity1, lachesis1, behodler2, lachesis2, weidai, eye, angbandInstance.address, this.mockeLiquidityReceiverInstance.address, "0x0000000000000000000000000000000000000000")
+    await deployer.deploy(Migrator, behodler1, scarcity1, lachesis1, behodler2, lachesis2, weidai, eye, angbandInstance.address, "0x0000000000000000000000000000000000000000", mockLiquidityReceiverInstance.address)
     console.log('quitting')
     client.quit()
 }
