@@ -64,7 +64,7 @@ contract IronCrown is Empowered {
         silmarils[index].exit = exit;
     }
 
-    function getSilmaril(uint256 index)
+    function getSilmaril(uint8 index)
         external
         view
         returns (uint16, address)

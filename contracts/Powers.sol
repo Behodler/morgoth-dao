@@ -174,7 +174,7 @@ contract PowersRegistry is Empowered {
         initialized = true;
     }
 
-    function seed() public {
+    function seed() public{
         powersRegistry = PowersRegistry(address(this));
     }
 
@@ -233,15 +233,7 @@ contract PowersRegistry is Empowered {
         require(!currentPower.unique, "MORGOTH: power not divisible.");
         _spread(power, minion_to);
     }
-
-    function _spread(
-        bytes32 name,
-        bytes32 minion_to
-    ) internal {
-        powerIsInMinion[name][minion_to] = true;
-        minionHasPower[minion_to][name] = true;
-    }
-
+   
     function castIntoVoid(address user, bytes32 minion)
         public
         requiresPower(BOND_USER_TO_MINION)
@@ -261,4 +253,13 @@ contract PowersRegistry is Empowered {
         userIsMinion[user][minion] = true;
         userMinion[user] = minion;
     }
+
+     function _spread(
+        bytes32 name,
+        bytes32 minion_to
+    ) internal {
+        powerIsInMinion[name][minion_to] = true;
+        minionHasPower[minion_to][name] = true;
+    }
+
 }

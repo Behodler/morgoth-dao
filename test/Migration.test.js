@@ -14,10 +14,12 @@ const MockAngband = contract.fromArtifact('MockAngband')
 
 const Migrator = contract.fromArtifact('Migrator')
 const MockLoomTokenSwap = contract.fromArtifact('MockLoomTokenSwap')
+const MockLiquidityReceiver = contract.fromArtifact('MockLiquidityReceiver')
 
 describe('Migration', async function () {
     const [owner, user2, user3, feeDestination] = accounts;
     let initialScarcityGenerated;
+
     beforeEach(async function () {
         //construct
         this.scarcity = await Scarcity1.new({ from: owner })
@@ -36,9 +38,9 @@ describe('Migration', async function () {
         this.oldLoom = await MockToken.new({ from: owner })
         await this.oldLoom.mint(user2, "200000000000000000000")
 
-        this.newLoom  = await MockToken.new({from:owner});
+        this.newLoom = await MockToken.new({ from: owner });
 
-        this.loomSwap = await MockLoomTokenSwap.new(this.oldLoom.address,this.newLoom.address,{from:owner})
+        this.loomSwap = await MockLoomTokenSwap.new(this.oldLoom.address, this.newLoom.address, { from: owner })
         this.token3 = await MockToken.new({ from: owner })
         await this.token3.mint(user3, "3500000000000000000000")
 
@@ -74,7 +76,7 @@ describe('Migration', async function () {
         initialScarcityGenerated = await this.scarcity.totalSupply();
 
         this.mockAngband = await MockAngband.new({ from: owner })
-
+        this.liquidityReceiver = await MockLiquidityReceiver.new({ from: owner })
         this.migrator = await Migrator.new(this.behodler1.address,
             this.scarcity.address,
             this.lachesis1.address,
@@ -84,6 +86,7 @@ describe('Migration', async function () {
             this.eye.address,
             this.mockAngband.address,
             this.loomSwap.address,
+            this.liquidityReceiver.address,
             { from: owner })
 
 
@@ -176,8 +179,35 @@ describe('Migration', async function () {
         eyeBalanceOnBehodler1 = (await this.eye.balanceOf(this.behodler1.address)).toString()
         assert.equal(eyeBalanceOnBehodler1, '0')
 
+        const pyroToken1Before = await this.liquidityReceiver.baseTokenMapping(this.token1.address)
+        const pyroLoom1Before = await this.liquidityReceiver.baseTokenMapping(this.oldLoom.address)
+        const pyroToken3Before = await this.liquidityReceiver.baseTokenMapping(this.token3.address)
+        const pyroWeiDaiBefore = await this.liquidityReceiver.baseTokenMapping(this.weidai.address)
+        const pyroEyeBefore = await this.liquidityReceiver.baseTokenMapping(this.eye.address)
+
+        assert.equal(pyroToken1Before, '0x0000000000000000000000000000000000000000')
+        assert.equal(pyroLoom1Before, '0x0000000000000000000000000000000000000000')
+        assert.equal(pyroToken3Before, '0x0000000000000000000000000000000000000000')
+        assert.equal(pyroWeiDaiBefore, '0x0000000000000000000000000000000000000000')
+        assert.equal(pyroEyeBefore, '0x0000000000000000000000000000000000000000')
 
         await this.migrator.step5()
+
+        const pyroToken1After = await this.liquidityReceiver.baseTokenMapping(this.token1.address)
+        const pyroLoom1After = await this.liquidityReceiver.baseTokenMapping(this.oldLoom.address)
+        const pyroToken3After = await this.liquidityReceiver.baseTokenMapping(this.token3.address)
+        const pyroWeiDaiAfter = await this.liquidityReceiver.baseTokenMapping(this.weidai.address)
+        const pyroEyeAfter = await this.liquidityReceiver.baseTokenMapping(this.eye.address)
+
+        assert.notEqual(pyroToken1After, '0x0000000000000000000000000000000000000000')
+        assert.notEqual(pyroLoom1After, '0x0000000000000000000000000000000000000000')
+        assert.notEqual(pyroToken3After, '0x0000000000000000000000000000000000000000')
+
+        assert.equal(pyroWeiDaiAfter, '0x0000000000000000000000000000000000000000')
+        assert.equal(pyroEyeAfter, '0x0000000000000000000000000000000000000000')
+
+
+
         currentStep = (await this.migrator.stepCounter()).toNumber()
         assert.equal(currentStep, 6)
 

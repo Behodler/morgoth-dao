@@ -40,6 +40,10 @@ abstract contract Lachesis1 {
     function cut(address token) external view virtual;
 }
 
+abstract contract LiquidityReceiverFacade {
+    function registerPyroToken(address baseToken) public virtual;
+}
+
 abstract contract Behodler1 {
     function buyScarcity(
         address tokenAddress,
@@ -106,7 +110,6 @@ contract Migrator {
     event addTokensAsLiquidity(uint256 step, uint256 scxExchangeRate);
     event transferOwnershipToAngband(uint256 step, address angband);
 
-    uint256 constant behodler1Factor = 128;
     uint8 public stepCounter = 1;
     ScarcityBridge public bridge;
     struct version {
@@ -119,6 +122,7 @@ contract Migrator {
     address eye;
     address angband;
     address deployer;
+    LiquidityReceiverFacade liquidityReceiver;
     LoomTokenSwap loomSwap;
 
     version public One;
@@ -139,7 +143,8 @@ contract Migrator {
         address _weidai,
         address _eye,
         address _angband,
-        address loomTokenSwap
+        address loomTokenSwap,
+        address _liquidityReceiver
     ) {
         One.behodler = behodler1;
         One.scarcity = scarcity1;
@@ -153,6 +158,7 @@ contract Migrator {
         angband = _angband;
         deployer = msg.sender;
         loomSwap = LoomTokenSwap(loomTokenSwap);
+        liquidityReceiver = LiquidityReceiverFacade(_liquidityReceiver);
     }
 
     function initBridge() public {
@@ -287,6 +293,9 @@ contract Migrator {
                 baseTokens[i] == oldLoomToken ? newLoomToken : baseTokens[i];
             lachesis.measure(token, true, burnable);
             lachesis.updateBehodler(token);
+            if (!burnable) {
+                liquidityReceiver.registerPyroToken(baseTokens[i]);
+            }
         }
         emit addTokensToLachesis2(stepCounter);
         stepCounter++;
