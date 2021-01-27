@@ -29,6 +29,11 @@ contract ScarcityBridge {
     ScarcityTotals public totals;
     address migrator;
 
+    modifier onlyMigrator {
+        require(msg.sender == migrator);
+        _;
+    }
+
     constructor(
         address scarcity1,
         address scarcity2,
@@ -39,13 +44,11 @@ contract ScarcityBridge {
         migrator = _migrator;
     }
 
-    function collectScarcity1BeforeBurning(uint scx) public {
-        totals.total_v1 +=scx;
+    function collectScarcity1BeforeBurning(uint256 scx) public onlyMigrator {
+        totals.total_v1 += scx;
     }
 
-    function recordExchangeRate() public {
-        require(msg.sender == migrator);
-      //  totals.total_v1 = IERC20(totals.scarcity1).totalSupply();
+    function recordExchangeRate() public onlyMigrator {
         totals.total_v2 = IERC20(totals.scarcity2).totalSupply();
         exchangeRate = totals.total_v1 / totals.total_v2;
         totals.blockRecorded = block.number;

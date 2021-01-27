@@ -3,6 +3,10 @@ const Angband = artifacts.require('Angband')
 const Migrator = artifacts.require('Migrator')
 const SetSilmarilPower = artifacts.require('SetSilmarilPower')
 const MockLiquidityReceiver = artifacts.require('MockLiquidityReceiver')
+const AddTokenToBehodlerPower = artifacts.require("AddTokenToBehodlerPower")
+const ConfigureScarcityPower = artifacts.require("ConfigureScarcityPower")
+const ScarcityBridge = artifacts.require('ScarcityBridge')
+
 const redis = require('redis')
 const client = redis.createClient();
 client.on('error', console.log)
@@ -18,6 +22,7 @@ module.exports = async function (deployer, network, accounts) {
     const scarcity1 = await get('scarcity1')
     const behodler2 = await get('behodler2')
     const lachesis2 = await get('behodler2')
+
     //load addresses for lachesis1, Scarcity1, Behodler1, Behodler2, Scarcity2
 
     const melkorOption = { from: Melkor }
@@ -30,7 +35,9 @@ module.exports = async function (deployer, network, accounts) {
 
     //create angband
     await deployer.deploy(Angband, powersRegistryInstance.address, melkorOption)
-    const angbandInstance = await Angband.deployed(powersRegistryInstance.address, melkorOption)
+    const angbandInstance = await Angband.deployed()
+    const ironCrownAddress = await angbandInstance.ironCrown.call()
+
     console.log('FINALIZE ANGBAND')
     await angbandInstance.finalizeSetup(melkorOption)
     console.log('Creating power')
@@ -51,6 +58,15 @@ module.exports = async function (deployer, network, accounts) {
     await powersRegistryInstance.create(stringToBytes('AUTHORIZE_INVOKER'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
     await powersRegistryInstance.pour(stringToBytes('AUTHORIZE_INVOKER'), stringToBytes('Melkor'), { from: Melkor })
 
+    const token = get('mock1Token')
+    console.log('TOKEN: ' + token)
+    await deployer.deploy(SetSilmarilPower, stringToBytes('INSERT_SILMARIL'), angbandInstance.address, melkorOption)
+    await deployer.deploy(AddTokenToBehodlerPower, token, true, stringToBytes('ADD_TOKEN_TO_BEHODLER'), angbandInstance.address, melkorOption)
+    await deployer.deploy(ConfigureScarcityPower, stringToBytes('CONFIGURE_SCARCITY'), angbandInstance.address, melkorOption)
+
+    const setSilamrilAddress = (await SetSilmarilPower.deployed()).address
+    const addTokenToBehodlerAddress = (await AddTokenToBehodlerPower.deployed()).address
+    const configureScarcityAddress = (await ConfigureScarcityPower.deployed()).address
     //INSERT_SILMARILS: can't insert until after migration.
     /* const [mining, dev, treasury] = [0, 1, 2]
  
@@ -87,6 +103,22 @@ module.exports = async function (deployer, network, accounts) {
     console.log(`behodler1 ${behodler1} scarcity1 ${scarcity1} lachesis1 ${lachesis1} behodler2 ${behodler2} lachesis2 ${lachesis2}`)
     //Migrator
     await deployer.deploy(Migrator, behodler1, scarcity1, lachesis1, behodler2, lachesis2, weidai, eye, angbandInstance.address, "0x0000000000000000000000000000000000000000", mockLiquidityReceiverInstance.address)
+    const migratorAddress = (await Migrator.deployed()).address
+    await deployer.deploy(ScarcityBridge, scarcity1, behodler2, migratorAddress)
+    const scarcityBridgeAddress = (await ScarcityBridge.deployed()).address
+
+    const addressBlock = {
+        AddTokenToBehodlerPower: addTokenToBehodlerAddress,
+        Angband: angbandInstance.address,
+        ConfigureScarcityPower: configureScarcityAddress,
+        IronCrown: ironCrownAddress,
+        Migrator: migratorAddress,
+        PowersRegistry: powersRegistryInstance.address,
+        ScarcityBridge: scarcityBridgeAddress,
+        SetSilmarilPower: setSilamrilAddress
+    }
+
+    client.set('MorgothDev', JSON.stringify(addressBlock))
     console.log('quitting')
     client.quit()
 }
