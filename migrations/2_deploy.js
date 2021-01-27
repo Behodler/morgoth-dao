@@ -6,7 +6,7 @@ const MockLiquidityReceiver = artifacts.require('MockLiquidityReceiver')
 const AddTokenToBehodlerPower = artifacts.require("AddTokenToBehodlerPower")
 const ConfigureScarcityPower = artifacts.require("ConfigureScarcityPower")
 const ScarcityBridge = artifacts.require('ScarcityBridge')
-
+const fs = require('fs')
 const redis = require('redis')
 const client = redis.createClient();
 client.on('error', console.log)
@@ -108,17 +108,16 @@ module.exports = async function (deployer, network, accounts) {
     const scarcityBridgeAddress = (await ScarcityBridge.deployed()).address
 
     const addressBlock = {
-        AddTokenToBehodlerPower: addTokenToBehodlerAddress,
+        AddTokenToBehodler: addTokenToBehodlerAddress,
         Angband: angbandInstance.address,
-        ConfigureScarcityPower: configureScarcityAddress,
+        ConfigureScarcity: configureScarcityAddress,
         IronCrown: ironCrownAddress,
         Migrator: migratorAddress,
         PowersRegistry: powersRegistryInstance.address,
         ScarcityBridge: scarcityBridgeAddress,
-        SetSilmarilPower: setSilamrilAddress
+        SetSilmaril: setSilamrilAddress
     }
-
-    client.set('MorgothDev', JSON.stringify(addressBlock))
+    fs.writeFileSync('DevAddresses.json',JSON.stringify(addressBlock,null,4))
     console.log('quitting')
     client.quit()
 }
