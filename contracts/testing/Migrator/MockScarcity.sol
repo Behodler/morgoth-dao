@@ -16,7 +16,7 @@ contract MockScarcity is Secondary {
         totalSupply += value;
     }
 
-    function burn(uint256 value) public {
+    function burn(uint256 value) external {
         balances[msg.sender] -= value;
         totalSupply -= value;
     }

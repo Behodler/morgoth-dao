@@ -5,7 +5,9 @@ const SetSilmarilPower = artifacts.require('SetSilmarilPower')
 const MockLiquidityReceiver = artifacts.require('MockLiquidityReceiver')
 const AddTokenToBehodlerPower = artifacts.require("AddTokenToBehodlerPower")
 const ConfigureScarcityPower = artifacts.require("ConfigureScarcityPower")
-const ScarcityBridge = artifacts.require('ScarcityBridge')
+const LoomTokenSwap = artifacts.require('MockLoomTokenSwap')
+const NewLoom = artifacts.require('MockToken')
+
 const fs = require('fs')
 const redis = require('redis')
 const client = redis.createClient();
@@ -21,7 +23,7 @@ module.exports = async function (deployer, network, accounts) {
     const lachesis1 = await get('lachesis1')
     const scarcity1 = await get('scarcity1')
     const behodler2 = await get('behodler2')
-    const lachesis2 = await get('behodler2')
+    const lachesis2 = await get('lachesis2')
 
     //load addresses for lachesis1, Scarcity1, Behodler1, Behodler2, Scarcity2
 
@@ -59,6 +61,8 @@ module.exports = async function (deployer, network, accounts) {
     await powersRegistryInstance.pour(stringToBytes('AUTHORIZE_INVOKER'), stringToBytes('Melkor'), { from: Melkor })
 
     const token = get('mock1Token')
+    await deployer.deploy(NewLoom)
+    const newLoomInstance = await NewLoom.deployed()
     console.log('TOKEN: ' + token)
     await deployer.deploy(SetSilmarilPower, stringToBytes('INSERT_SILMARIL'), angbandInstance.address, melkorOption)
     await deployer.deploy(AddTokenToBehodlerPower, token, true, stringToBytes('ADD_TOKEN_TO_BEHODLER'), angbandInstance.address, melkorOption)
@@ -101,11 +105,16 @@ module.exports = async function (deployer, network, accounts) {
     const eye = await get('eye')
     console.log(`weidai ${weidai} dai ${dai} eye ${eye}`)
     console.log(`behodler1 ${behodler1} scarcity1 ${scarcity1} lachesis1 ${lachesis1} behodler2 ${behodler2} lachesis2 ${lachesis2}`)
+
+    await deployer.deploy(LoomTokenSwap, token)
+    const loomTokenSwapInstance = await LoomTokenSwap.deployed()
+    await loomTokenSwapInstance.setNewLoomToken(newLoomInstance.address)
     //Migrator
-    await deployer.deploy(Migrator, behodler1, scarcity1, lachesis1, behodler2, lachesis2, weidai, eye, angbandInstance.address, "0x0000000000000000000000000000000000000000", mockLiquidityReceiverInstance.address)
-    const migratorAddress = (await Migrator.deployed()).address
-    await deployer.deploy(ScarcityBridge, scarcity1, behodler2, migratorAddress)
-    const scarcityBridgeAddress = (await ScarcityBridge.deployed()).address
+    await deployer.deploy(Migrator, behodler1, scarcity1, lachesis1, behodler2, lachesis2, weidai, eye, angbandInstance.address, loomTokenSwapInstance.address, mockLiquidityReceiverInstance.address)
+    const migratorInstance = await Migrator.deployed()
+    await migratorInstance.initBridge()
+    const scarcityBridgeAddress = await migratorInstance.bridge()
+    const migratorAddress = migratorInstance.address
 
     const addressBlock = {
         AddTokenToBehodler: addTokenToBehodlerAddress,
@@ -117,7 +126,7 @@ module.exports = async function (deployer, network, accounts) {
         ScarcityBridge: scarcityBridgeAddress,
         SetSilmaril: setSilamrilAddress
     }
-    fs.writeFileSync('DevAddresses.json',JSON.stringify(addressBlock,null,4))
+    fs.writeFileSync('DevAddresses.json', JSON.stringify(addressBlock, null, 4))
     console.log('quitting')
     client.quit()
 }

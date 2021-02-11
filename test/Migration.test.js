@@ -40,7 +40,8 @@ describe('Migration', async function () {
 
         this.newLoom = await MockToken.new({ from: owner });
 
-        this.loomSwap = await MockLoomTokenSwap.new(this.oldLoom.address, this.newLoom.address, { from: owner })
+        this.loomSwap = await MockLoomTokenSwap.new(this.oldLoom.address, { from: owner })
+        await this.loomSwap.setNewLoomToken(this.newLoom.address, { from: owner })
         this.token3 = await MockToken.new({ from: owner })
         await this.token3.mint(user3, "3500000000000000000000")
 
@@ -206,8 +207,6 @@ describe('Migration', async function () {
         assert.equal(pyroWeiDaiAfter, '0x0000000000000000000000000000000000000000')
         assert.equal(pyroEyeAfter, '0x0000000000000000000000000000000000000000')
 
-
-
         currentStep = (await this.migrator.stepCounter()).toNumber()
         assert.equal(currentStep, 6)
 
@@ -291,6 +290,15 @@ describe('Migration', async function () {
 
         assert.equal(ownerOfBehodler2, this.mockAngband.address)
         assert.equal(ownerOfLachesis2, this.mockAngband.address)
+
+        const scarcityV1 = (await this.scarcity.balanceOf(owner)).toString()
+        this.behodler2.setMigrator(bridgeAddress, { from: owner })
+        await this.scarcity.approve(bridgeAddress, '115792089237316000000000000000000000000000000000000000000000000000000000000000', { from: owner })
+        await bridge.swap({ from: owner })
+        const scarcityV2 = (await this.behodler2.balanceOf(owner)).toString()
+        const bnSCX1 = BigInt(scarcityV1)
+        const bnSCX2 = BigInt(scarcityV2)
+        assert.equal(bnSCX1 / 5000n, bnSCX2)
     })
 
     it('allows bail before step 7', async function () {

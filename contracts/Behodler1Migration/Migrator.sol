@@ -91,8 +91,12 @@ abstract contract LoomTokenSwap {
      *         Emits Swap event if the swap is successful.
      */
     function swap() external virtual;
+
+    function setNewLoomToken(address _newToken) external virtual;
 }
 
+//Mainnet Loom 0x42476F744292107e34519F9c357927074Ea3F75D
+//Loom Token Swap: 0x7711863244783348Ae78c2BDebb9802b297DCE56
 contract Migrator {
     event bailOnMigration(uint8 step);
     event verifyOwnership(
@@ -310,17 +314,17 @@ contract Migrator {
 
         Behodler2 behodler2 = Behodler2(Two.behodler);
         address oldLoom = address(loomSwap.oldToken());
+        address self = address(this);
         for (; step6Index < stop; step6Index++) {
-            uint256 behodler1Balance = baseBalances[step6Index];
             address token = baseTokens[step6Index];
             if (token == oldLoom) {
                 loomSwap.oldToken().approve(address(loomSwap), uint256(-1));
                 loomSwap.swap();
                 token = address(loomSwap.newToken());
             }
-
-            ERC20(token).approve(Two.behodler, behodler1Balance);
-            behodler2.addLiquidity(token, behodler1Balance);
+            uint256 balance = ERC20(token).balanceOf(self);
+            ERC20(token).approve(Two.behodler, uint256(-1));
+            behodler2.addLiquidity(token, balance);
         }
 
         if (stop == tokenCount) {

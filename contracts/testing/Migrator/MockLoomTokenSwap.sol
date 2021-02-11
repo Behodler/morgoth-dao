@@ -5,9 +5,12 @@ contract MockLoomTokenSwap {
     ERC20 public oldToken;
     ERC20 public newToken;
 
-    constructor(address _old, address _new) {
+    constructor(address _old) {
         oldToken = ERC20(_old);
-        newToken = ERC20(_new);
+    }
+
+    function setNewLoomToken(address _newToken) external {
+        newToken = ERC20(_newToken);
     }
 
     /**

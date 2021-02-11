@@ -72,4 +72,14 @@ contract MockBehodler2 is Ownable {
     function setWhiteListUsers(address user, bool whitelisted) public {
         whiteListUsers[user] = whitelisted;
     }
+    
+    address migrator;
+    function migrateMint(address recipient, uint256 value) public {
+        require(msg.sender == migrator, "SCARCITY: Migration contract only");
+        mint(recipient, value);
+    }
+
+    function setMigrator(address m) public {
+        migrator = m;
+    }
 }
