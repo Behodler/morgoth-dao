@@ -70,6 +70,8 @@ abstract contract Behodler2 {
         virtual;
 
     function whiteListUsers(address user) public view virtual returns (bool);
+
+    function setMigrator(address m) public virtual;
 }
 
 abstract contract Lachesis2 {
@@ -215,6 +217,9 @@ contract Migrator {
             Behodler2(Two.behodler).whiteListUsers(address(this)),
             "MIGRATION: Ensure that the migration contract is whitelisted on Behodler"
         );
+        
+        Behodler2(Two.behodler).setMigrator(address(bridge));
+
         emit verifyOwnership(
             stepCounter,
             One.behodler,
