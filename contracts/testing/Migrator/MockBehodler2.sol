@@ -3,11 +3,17 @@ pragma solidity ^0.7.1;
 import "../../openzeppelin/Ownable.sol";
 import "./MockScarcity.sol";
 import "../../Behodler1Migration/ERC20.sol";
+import "./MockWeth1.sol";
 
 contract MockBehodler2 is Ownable {
     address lachesis;
     uint256 public totalSupply;
     mapping(address => uint256) balances;
+    address public Weth;
+
+    constructor(address _weth) {
+        Weth = _weth;
+    }
 
     function setLachesis(address l) public {
         lachesis = l;
@@ -51,7 +57,12 @@ contract MockBehodler2 is Ownable {
     }
 
     function addLiquidity(address inputToken, uint256 amount) public payable {
-        ERC20(inputToken).transferFrom(msg.sender, address(this), amount);
+        if (inputToken == Weth) {
+            require(msg.value == amount);
+            MockWeth1(Weth).deposit{value: amount}();
+        } else {
+            ERC20(inputToken).transferFrom(msg.sender, address(this), amount);
+        }
         balances[msg.sender] += amount * 2;
         totalSupply += amount * 2;
     }
@@ -72,8 +83,9 @@ contract MockBehodler2 is Ownable {
     function setWhiteListUsers(address user, bool whitelisted) public {
         whiteListUsers[user] = whitelisted;
     }
-    
+
     address migrator;
+
     function migrateMint(address recipient, uint256 value) public {
         require(msg.sender == migrator, "SCARCITY: Migration contract only");
         mint(recipient, value);

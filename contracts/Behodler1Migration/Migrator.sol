@@ -44,6 +44,10 @@ abstract contract LiquidityReceiverFacade {
     function registerPyroToken(address baseToken) public virtual;
 }
 
+abstract contract Weth1 {
+    function withdraw(uint256 value) external virtual;
+}
+
 abstract contract Behodler1 {
     function buyScarcity(
         address tokenAddress,
@@ -72,6 +76,8 @@ abstract contract Behodler2 {
     function whiteListUsers(address user) public view virtual returns (bool);
 
     function setMigrator(address m) public virtual;
+
+    function Weth() public virtual returns (address);
 }
 
 abstract contract Lachesis2 {
@@ -122,6 +128,7 @@ contract Migrator {
         address behodler;
         address scarcity;
         address lachesis;
+        address weth;
     }
 
     address weidai;
@@ -140,6 +147,8 @@ contract Migrator {
     uint256 step4Index;
     uint256 step6Index;
 
+    receive() external payable {}
+
     constructor(
         address behodler1,
         address scarcity1,
@@ -150,15 +159,17 @@ contract Migrator {
         address _eye,
         address _angband,
         address loomTokenSwap,
-        address _liquidityReceiver
+        address _liquidityReceiver,
+        address _behodler1Weth
     ) {
         One.behodler = behodler1;
         One.scarcity = scarcity1;
         One.lachesis = lachesis1;
+        One.weth = _behodler1Weth;
 
         Two.behodler = behodler2;
         Two.lachesis = lachesis2;
-
+        Two.weth = Behodler2(behodler2).Weth();
         weidai = _weidai;
         eye = _eye;
         angband = _angband;
@@ -217,7 +228,7 @@ contract Migrator {
             Behodler2(Two.behodler).whiteListUsers(address(this)),
             "MIGRATION: Ensure that the migration contract is whitelisted on Behodler"
         );
-        
+
         Behodler2(Two.behodler).setMigrator(address(bridge));
 
         emit verifyOwnership(
@@ -300,6 +311,7 @@ contract Migrator {
             bool burnable = baseTokens[i] == weidai || baseTokens[i] == eye;
             address token =
                 baseTokens[i] == oldLoomToken ? newLoomToken : baseTokens[i];
+            if (token == One.weth) token = Two.weth;
             lachesis.measure(token, true, burnable);
             lachesis.updateBehodler(token);
             if (!burnable) {
@@ -327,9 +339,15 @@ contract Migrator {
                 loomSwap.swap();
                 token = address(loomSwap.newToken());
             }
+
             uint256 balance = ERC20(token).balanceOf(self);
-            ERC20(token).approve(Two.behodler, uint256(-1));
-            behodler2.addLiquidity(token, balance);
+            if (token == One.weth) {
+                Weth1(token).withdraw(balance);
+                behodler2.addLiquidity{value: balance}(Two.weth, balance);
+            } else {
+                ERC20(token).approve(Two.behodler, uint256(-1));
+                behodler2.addLiquidity(token, balance);
+            }
         }
 
         if (stop == tokenCount) {

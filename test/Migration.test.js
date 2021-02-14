@@ -11,6 +11,7 @@ const Behodler2 = contract.fromArtifact('MockBehodler2')
 const Lachesis2 = contract.fromArtifact('MockLachesis2')
 const MockToken = contract.fromArtifact('MockToken')
 const MockAngband = contract.fromArtifact('MockAngband')
+const MockWeth = contract.fromArtifact('MockWeth1')
 
 const Migrator = contract.fromArtifact('Migrator')
 const MockLoomTokenSwap = contract.fromArtifact('MockLoomTokenSwap')
@@ -26,7 +27,8 @@ describe('Migration', async function () {
         this.lachesis1 = await Lachesis1.new({ from: owner })
         this.behodler1 = await Behodler1.new(this.scarcity.address, this.lachesis1.address, { from: owner })
         this.lachesis2 = await Lachesis2.new({ from: owner })
-        this.behodler2 = await Behodler2.new({ from: owner })
+        this.mockWeth = await MockWeth.new({ from: owner })
+        this.behodler2 = await Behodler2.new(this.mockWeth.address, { from: owner })
         await this.lachesis2.setBehodler(this.behodler2.address)
         await this.behodler2.setLachesis(this.lachesis2.address)
         await this.behodler2.configureScarcity(10, 25, feeDestination, { from: owner })
@@ -54,6 +56,8 @@ describe('Migration', async function () {
         this.eye = await MockToken.new({ from: owner })
         await this.eye.mint(owner, "100000000000000000000000")
 
+        await this.mockWeth.deposit({ from: owner, value: '10000000000000000000' })
+
 
         //add 3 tokens to Behodler 1
         await this.lachesis1.measure(this.token1.address, true)
@@ -61,19 +65,21 @@ describe('Migration', async function () {
         await this.lachesis1.measure(this.token3.address, true)
         await this.lachesis1.measure(this.weidai.address, true)
         await this.lachesis1.measure(this.eye.address, true)
+        await this.lachesis1.measure(this.mockWeth.address, true)
 
         await this.token1.approve(this.behodler1.address, '100000000000000000000000', { from: owner })
         await this.oldLoom.approve(this.behodler1.address, '100000000000000000000000', { from: user2 })
         await this.token3.approve(this.behodler1.address, '100000000000000000000000', { from: user3 })
         await this.weidai.approve(this.behodler1.address, '100000000000000000000000', { from: user2 })
         await this.eye.approve(this.behodler1.address, '100000000000000000000000', { from: owner })
+        await this.mockWeth.approve(this.behodler1.address, '10000000000000000000', { from: owner })
 
         await this.behodler1.buyScarcity(this.token1.address, "3000000000000000000000", 0, { from: owner });
         await this.behodler1.buyScarcity(this.oldLoom.address, '160000000000000000000', 0, { from: user2 });
         await this.behodler1.buyScarcity(this.token3.address, '2000000000000000000000', 0, { from: user3 });
         await this.behodler1.buyScarcity(this.weidai.address, '500000000000000000000', 0, { from: user2 });
         await this.behodler1.buyScarcity(this.eye.address, '90000000000000000000000', 0, { from: owner });
-
+        await this.behodler1.buyScarcity(this.mockWeth.address, '10000000000000000000', 0, { from: owner });
         initialScarcityGenerated = await this.scarcity.totalSupply();
 
         this.mockAngband = await MockAngband.new({ from: owner })
@@ -88,6 +94,7 @@ describe('Migration', async function () {
             this.mockAngband.address,
             this.loomSwap.address,
             this.liquidityReceiver.address,
+            this.mockWeth.address,
             { from: owner })
 
 
@@ -121,7 +128,7 @@ describe('Migration', async function () {
         assert.equal(currentStep, 2)
 
         //STEP2
-        const tokens = [this.token1.address, this.oldLoom.address, this.token3.address, this.weidai.address, this.eye.address]
+        const tokens = [this.token1.address, this.oldLoom.address, this.token3.address, this.weidai.address, this.eye.address, this.mockWeth.address]
         await this.migrator.step2(tokens)
         currentStep = (await this.migrator.stepCounter()).toNumber()
         assert.equal(currentStep, 3)
@@ -133,6 +140,7 @@ describe('Migration', async function () {
         await expectRevert(this.lachesis1.cut(this.token4.address), 'invalid token.')
         await expectRevert(this.lachesis1.cut(this.weidai.address), 'invalid token.')
         await expectRevert(this.lachesis1.cut(this.eye.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.mockWeth.address), 'invalid token.')
 
         await this.migrator.step3();
 
@@ -152,6 +160,9 @@ describe('Migration', async function () {
         let eyeBalanceOnBehodler1 = (await this.eye.balanceOf(this.behodler1.address)).toString()
         assert.equal(eyeBalanceOnBehodler1, '90000000000000000000000')
 
+        let wethBalanceOnBehodler1 = (await this.mockWeth.balanceOf(this.behodler1.address)).toString()
+        assert.equal(wethBalanceOnBehodler1, '10000000000000000000')
+
         await this.migrator.step4(2);
         await this.migrator.step4(2);
         await this.migrator.step4(4);
@@ -163,6 +174,7 @@ describe('Migration', async function () {
         await expectRevert(this.lachesis1.cut(this.token4.address), 'invalid token.')
         await expectRevert(this.lachesis1.cut(this.weidai.address), 'invalid token.')
         await expectRevert(this.lachesis1.cut(this.eye.address), 'invalid token.')
+        await expectRevert(this.lachesis1.cut(this.mockWeth.address), 'invalid token.')
 
         //assert zero token balances on behodler1
         token1BalanceOnBehodler1 = (await this.token1.balanceOf(this.behodler1.address)).toString()
@@ -179,6 +191,10 @@ describe('Migration', async function () {
 
         eyeBalanceOnBehodler1 = (await this.eye.balanceOf(this.behodler1.address)).toString()
         assert.equal(eyeBalanceOnBehodler1, '0')
+
+        wethBalanceOnBehodler1 = (await this.mockWeth.balanceOf(this.behodler1.address)).toString()
+        assert.equal(wethBalanceOnBehodler1, '0')
+
 
         const pyroToken1Before = await this.liquidityReceiver.baseTokenMapping(this.token1.address)
         const pyroLoom1Before = await this.liquidityReceiver.baseTokenMapping(this.oldLoom.address)
@@ -232,6 +248,11 @@ describe('Migration', async function () {
         const eyeValidOnBehodler2 = await this.behodler2.validTokens(this.eye.address)
         const eyeBurnableOnBehodler2 = await this.behodler2.tokenBurnable(this.eye.address)
 
+
+        const weth10 = await this.behodler2.Weth();
+        const wethValidOnBehodler2 = await this.behodler2.validTokens(weth10)
+        const wethBurnableOnBehodler2 = await this.behodler2.tokenBurnable(weth10)
+
         //assert validity and burnability of tokens on behodler2
         assert.isTrue(token1ValidOnBehodler2)
         assert.isFalse(oldLoomValidOnBehodler2)
@@ -240,11 +261,14 @@ describe('Migration', async function () {
         assert.isFalse(token4ValidOnBehodler2)
         assert.isTrue(weiDaiValidOnBehodler2)
         assert.isTrue(eyeValidOnBehodler2)
+        assert.isTrue(wethValidOnBehodler2)
+
 
         assert.isFalse(token1BurnableOnBehodler2)
         assert.isFalse(oldLoomBurnableOnBehodler2)
         assert.isFalse(token3BurnableOnBehodler2)
         assert.isFalse(token4BurnableOnBehodler2)
+        assert.isFalse(wethBurnableOnBehodler2)
         assert.isTrue(weiDaiBurnableOnBehodler2)
         assert.isTrue(eyeBurnableOnBehodler2)
 
@@ -273,6 +297,7 @@ describe('Migration', async function () {
 
         let eyeBalanceOnBehodler2 = (await this.eye.balanceOf(this.behodler2.address)).toString()
         assert.equal(eyeBalanceOnBehodler2, '90000000000000000000000')
+
 
         const bridgeAddress = await this.migrator.bridge()
         const bridge = contract.fromArtifact('ScarcityBridge', bridgeAddress)
