@@ -24,7 +24,7 @@ module.exports = async function (deployer, network, accounts) {
     const scarcity1 = await get('scarcity1')
     const behodler2 = await get('behodler2')
     const lachesis2 = await get('lachesis2')
-
+    const mockWeth1 = await get('mockWeth1')
     //load addresses for lachesis1, Scarcity1, Behodler1, Behodler2, Scarcity2
 
     const melkorOption = { from: Melkor }
@@ -109,8 +109,9 @@ module.exports = async function (deployer, network, accounts) {
     await deployer.deploy(LoomTokenSwap, token)
     const loomTokenSwapInstance = await LoomTokenSwap.deployed()
     await loomTokenSwapInstance.setNewLoomToken(newLoomInstance.address)
+
     //Migrator
-    await deployer.deploy(Migrator, behodler1, scarcity1, lachesis1, behodler2, lachesis2, weidai, eye, angbandInstance.address, loomTokenSwapInstance.address, mockLiquidityReceiverInstance.address)
+    await deployer.deploy(Migrator, behodler1, scarcity1, lachesis1, behodler2, lachesis2, weidai, eye, angbandInstance.address, loomTokenSwapInstance.address, mockLiquidityReceiverInstance.address,mockWeth1)
     const migratorInstance = await Migrator.deployed()
     await migratorInstance.initBridge()
     const scarcityBridgeAddress = await migratorInstance.bridge()
