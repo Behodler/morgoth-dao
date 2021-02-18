@@ -59,6 +59,10 @@ module.exports = async function (deployer, network, accounts) {
     console.log('Creating power')
     await powersRegistryInstance.create(stringToBytes('AUTHORIZE_INVOKER'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
     await powersRegistryInstance.pour(stringToBytes('AUTHORIZE_INVOKER'), stringToBytes('Melkor'), { from: Melkor })
+    console.log('Creating power')
+    await powersRegistryInstance.create(stringToBytes('TREASURER'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
+    await powersRegistryInstance.pour(stringToBytes('TREASURER'), stringToBytes('Melkor'), { from: Melkor })
+
 
     const token = get('mock1Token')
     await deployer.deploy(NewLoom)

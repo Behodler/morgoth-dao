@@ -119,6 +119,9 @@ describe('Migration', async function () {
         await expectRevert(this.migrator.step1(), "MIGRATION: lachesis2 owner mismatch")
         await this.lachesis2.transferOwnership(this.migrator.address, { from: owner })
 
+        await expectRevert(this.migrator.step1(), "MIGRATION: liquidity receiver owner mismatch")
+        await this.liquidityReceiver.transferOwnership(this.migrator.address, { from: owner })
+
         await expectRevert(this.migrator.step1(), "Ensure that the migration contract is whitelisted on Behodler")
         await this.behodler2.setWhiteListUsers(this.migrator.address, true)
 
@@ -342,6 +345,9 @@ describe('Migration', async function () {
 
         await expectRevert(this.migrator.step1(), "MIGRATION: lachesis2 owner mismatch")
         await this.lachesis2.transferOwnership(this.migrator.address, { from: owner })
+
+        await expectRevert(this.migrator.step1(), "MIGRATION: liquidity receiver owner mismatch")
+        await this.liquidityReceiver.transferOwnership(this.migrator.address, { from: owner })
 
         await expectRevert(this.migrator.step1(), "Ensure that the migration contract is whitelisted on Behodler")
         await this.behodler2.setWhiteListUsers(this.migrator.address, true)

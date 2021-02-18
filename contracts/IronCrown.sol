@@ -26,6 +26,12 @@ contract IronCrown is Empowered {
     constructor(address _powers) {
         powersRegistry = PowersRegistry(_powers);
         initialized = true;
+        silmarils[treasury].percentage = 750; //to start with treasury gets everything until we have a liquid vault. Then we can divide things up
+        silmarils[treasury].exit = msg.sender;
+        address devAddress = powersRegistry.minionUser("Melkor");
+
+        silmarils[dev].percentage = 250; //"cannot I have some shoes" - C&C generals peasant
+        silmarils[dev].exit = devAddress;
     }
 
     function setSCX(address _scx) public onlyOwner {
@@ -64,11 +70,7 @@ contract IronCrown is Empowered {
         silmarils[index].exit = exit;
     }
 
-    function getSilmaril(uint8 index)
-        external
-        view
-        returns (uint16, address)
-    {
+    function getSilmaril(uint8 index) external view returns (uint16, address) {
         return (silmarils[index].percentage, silmarils[index].exit);
     }
 }

@@ -128,7 +128,10 @@ describe('Angband', async function () {
     it(`ownership of behodler and lachesis returned after execute order66`, async function () {
         expect(await this.behodler.owner()).to.equal(this.angband.address)
         expect(await this.lachesis.owner()).to.equal(this.angband.address)
-
+        const angbandDomain = stringToBytes('ANGBAND')
+        const order66Power = stringToBytes('ORDER66')
+        await this.powersRegistry.create(order66Power, angbandDomain, true, false, { from: Melkor })
+        await this.powersRegistry.pour(order66Power, stringToBytes('Melkor'), { from: Melkor })
         await this.angband.executeOrder66({ from: Melkor });
 
         expect(await this.behodler.owner()).to.equal(Melkor)
@@ -137,6 +140,10 @@ describe('Angband', async function () {
 
     it(`executeORder66 fails after cooldown period`, async function () {
         //5702401
+        const angbandDomain = stringToBytes('ANGBAND')
+        const order66Power = stringToBytes('ORDER66')
+        await this.powersRegistry.create(order66Power, angbandDomain, true, false, { from: Melkor })
+        await this.powersRegistry.pour(order66Power, stringToBytes('Melkor'), { from: Melkor })
         await time.increase(5702401)
         await expectRevert(this.angband.executeOrder66({ from: Melkor }), "MORGOTH: Emergency shutdown powers have expired. Angband is forever.");
     })

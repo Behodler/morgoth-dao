@@ -23,6 +23,13 @@ contract Angband is Empowered, Thangorodrim {
         initialized = true;
     }
 
+    function resetEmergencyCooldownPeriod(uint256 daysFromNow)
+        public
+        requiresPower(powersRegistry.WIRE_ANGBAND())
+    {
+        emergencyCoolDownPeriod = block.timestamp + daysFromNow * (1 days);
+    }
+
     function finalizeSetup() public {
         _setAddress(ANGBAND, address(this));
     }
@@ -115,8 +122,7 @@ contract Angband is Empowered, Thangorodrim {
     }
 
     //temporary function to allow deployer to wrest control back from Angband in case of bugs or vulnerabilities
-    function executeOrder66() public {
-        require(msg.sender == deployer);
+    function executeOrder66() public requiresPower(powersRegistry.ORDER66()) {
         require(
             block.timestamp <= emergencyCoolDownPeriod,
             "MORGOTH: Emergency shutdown powers have expired. Angband is forever."
@@ -133,6 +139,7 @@ contract Angband is Empowered, Thangorodrim {
         public
         requiresPower(powersRegistry.TREASURER())
     {
+        ironCrown.settlePayments();
         address scx = getAddress(BEHODLER);
         ERC20(scx).transfer(msg.sender, amount);
     }

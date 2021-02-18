@@ -225,6 +225,11 @@ contract Migrator {
         );
 
         require(
+            OwnableFacade(address(liquidityReceiver)).owner() == self,
+            "MIGRATION: liquidity receiver owner mismatch"
+        );
+
+        require(
             Behodler2(Two.behodler).whiteListUsers(address(this)),
             "MIGRATION: Ensure that the migration contract is whitelisted on Behodler"
         );

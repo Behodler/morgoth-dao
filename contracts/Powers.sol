@@ -138,6 +138,7 @@ contract PowersRegistry is Empowered {
     bytes32 public constant INSERT_SILMARIL = "INSERT_SILMARIL";
     bytes32 public constant AUTHORIZE_INVOKER = "AUTHORIZE_INVOKER";
     bytes32 public constant TREASURER = "TREASURER";
+    bytes32 public constant ORDER66 = "ORDER66";
 
     mapping(bytes32 => Power) public powers;
 
@@ -145,7 +146,7 @@ contract PowersRegistry is Empowered {
     mapping(bytes32 => mapping(bytes32 => bool)) powerIsInMinion; //power,minion,bool
     mapping(bytes32 => mapping(bytes32 => bool)) minionHasPower; // minion,power,bool
     mapping(address => bytes32) public userMinion;
-
+    mapping (bytes32=>address) public minionUser;
     bytes32[] minions;
 
     constructor() {
@@ -167,6 +168,7 @@ contract PowersRegistry is Empowered {
         powerIsInMinion[BOND_USER_TO_MINION]["Melkor"] = true;
 
         userMinion[msg.sender] = "Melkor";
+        minionUser["Melkor"] = msg.sender;
 
         minionHasPower["Melkor"][CREATE_NEW_POWER] = true;
         minionHasPower["Melkor"][SEIZE_POWER] = true;
@@ -252,6 +254,7 @@ contract PowersRegistry is Empowered {
         );
         userIsMinion[user][minion] = true;
         userMinion[user] = minion;
+        minionUser[minion] = user;
     }
 
      function _spread(

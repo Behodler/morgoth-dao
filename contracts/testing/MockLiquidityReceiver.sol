@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.1;
+import "../openzeppelin/Ownable.sol";
 
 contract MockPyroToken {
     address public baseToken;
@@ -11,7 +12,7 @@ contract MockPyroToken {
     }
 }
 
-contract MockLiquidityReceiver {
+contract MockLiquidityReceiver is Ownable {
     mapping(address => address) public baseTokenMapping;
 
     function registerPyroToken(address baseToken) public {
