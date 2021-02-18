@@ -2,7 +2,6 @@ const PowersRegistry = artifacts.require('PowersRegistry')
 const Angband = artifacts.require('Angband')
 const Migrator = artifacts.require('Migrator')
 const SetSilmarilPower = artifacts.require('SetSilmarilPower')
-const MockLiquidityReceiver = artifacts.require('MockLiquidityReceiver')
 const AddTokenToBehodlerPower = artifacts.require("AddTokenToBehodlerPower")
 const ConfigureScarcityPower = artifacts.require("ConfigureScarcityPower")
 const LoomTokenSwap = artifacts.require('MockLoomTokenSwap')
@@ -25,11 +24,10 @@ module.exports = async function (deployer, network, accounts) {
     const behodler2 = await get('behodler2')
     const lachesis2 = await get('lachesis2')
     const mockWeth1 = await get('mockWeth1')
-    //load addresses for lachesis1, Scarcity1, Behodler1, Behodler2, Scarcity2
+    const liquidityReceiver = await get('liquidityReceiver')
+    //load addresses for lachesis1, Scarcity1, Behodler1, Behodler2, Scarcity2,liquidityReceiver
 
     const melkorOption = { from: Melkor }
-    await deployer.deploy(MockLiquidityReceiver)
-    const mockLiquidityReceiverInstance = await MockLiquidityReceiver.deployed()
     //create and seed powers
     await deployer.deploy(PowersRegistry, melkorOption)
     const powersRegistryInstance = await PowersRegistry.deployed()
@@ -115,7 +113,7 @@ module.exports = async function (deployer, network, accounts) {
     await loomTokenSwapInstance.setNewLoomToken(newLoomInstance.address)
 
     //Migrator
-    await deployer.deploy(Migrator, behodler1, scarcity1, lachesis1, behodler2, lachesis2, weidai, eye, angbandInstance.address, loomTokenSwapInstance.address, mockLiquidityReceiverInstance.address,mockWeth1)
+    await deployer.deploy(Migrator, behodler1, scarcity1, lachesis1, behodler2, lachesis2, weidai, eye, angbandInstance.address, loomTokenSwapInstance.address, liquidityReceiver, mockWeth1)
     const migratorInstance = await Migrator.deployed()
     await migratorInstance.initBridge()
     const scarcityBridgeAddress = await migratorInstance.bridge()

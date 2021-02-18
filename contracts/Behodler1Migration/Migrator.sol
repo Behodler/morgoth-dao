@@ -320,7 +320,7 @@ contract Migrator {
             lachesis.measure(token, true, burnable);
             lachesis.updateBehodler(token);
             if (!burnable) {
-                liquidityReceiver.registerPyroToken(baseTokens[i]);
+                liquidityReceiver.registerPyroToken(token);
             }
         }
         emit addTokensToLachesis2(stepCounter);
