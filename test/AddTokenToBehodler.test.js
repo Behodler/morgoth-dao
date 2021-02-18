@@ -8,6 +8,7 @@ const MockBehodler = artifacts.require("MockBehodler2")
 const MockLachesis2 = artifacts.require("MockLachesis2")
 const BurnableToken = artifacts.require('MockToken')
 const Invoker = artifacts.require('AddTokenToBehodlerPower')
+const MockWeth = artifacts.require('MockWeth1')
 
 const stringToBytes = (s) => web3.utils.fromAscii(s)
 contract('AddTokenToBehodler', async function (accounts) {
@@ -18,7 +19,8 @@ contract('AddTokenToBehodler', async function (accounts) {
         this.powersRegistry = await PowersRegistry.new({ from: Melkor })
         await this.powersRegistry.seed()
 
-        this.behodler = await MockBehodler.new({ from: Melkor })
+        this.mockWeth = await MockWeth.new({ from: Melkor })
+        this.behodler = await MockBehodler.new(this.mockWeth.address, { from: Melkor })
         this.lachesis = await MockLachesis2.new({ from: Melkor })
         await this.lachesis.setBehodler(this.behodler.address, { from: Melkor })
         await this.behodler.setLachesis(this.lachesis.address, { from: Melkor })

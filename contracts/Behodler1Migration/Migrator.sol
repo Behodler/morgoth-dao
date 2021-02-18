@@ -145,6 +145,7 @@ contract Migrator {
     uint256[] baseBalances;
     uint256 tokenCount;
     uint256 step4Index;
+    uint256 step5Index;
     uint256 step6Index;
 
     receive() external payable {}
@@ -304,7 +305,12 @@ contract Migrator {
     }
 
     //add tokens to Behodler2
-    function step5() public step(5) {
+    function step5(uint256 iterations) public step(5) {
+        uint256 stop =
+            step5Index + iterations > tokenCount
+                ? tokenCount
+                : step5Index + iterations;
+
         Lachesis2 lachesis = Lachesis2(Two.lachesis);
         address oldLoomToken = address(0);
         address newLoomToken = address(0);
@@ -312,10 +318,14 @@ contract Migrator {
             oldLoomToken = address(loomSwap.oldToken());
             newLoomToken = address(loomSwap.newToken());
         }
-        for (uint8 i = 0; i < tokenCount; i++) {
-            bool burnable = baseTokens[i] == weidai || baseTokens[i] == eye;
+        for (; step5Index < stop; step5Index++) {
+            bool burnable =
+                baseTokens[step5Index] == weidai ||
+                    baseTokens[step5Index] == eye;
             address token =
-                baseTokens[i] == oldLoomToken ? newLoomToken : baseTokens[i];
+                baseTokens[step5Index] == oldLoomToken
+                    ? newLoomToken
+                    : baseTokens[step5Index];
             if (token == One.weth) token = Two.weth;
             lachesis.measure(token, true, burnable);
             lachesis.updateBehodler(token);
@@ -323,8 +333,10 @@ contract Migrator {
                 liquidityReceiver.registerPyroToken(token);
             }
         }
-        emit addTokensToLachesis2(stepCounter);
-        stepCounter++;
+        if (stop == tokenCount) {
+            emit addTokensToLachesis2(stepCounter);
+            stepCounter++;
+        }
     }
 
     //add liquidity and calculate scx exchange rate for Behodler2

@@ -8,6 +8,7 @@ const PowersRegistry = artifacts.require("PowersRegistry")
 const MockScarcity = artifacts.require("MockBehodler2")
 const MockLachesis2 = artifacts.require("MockLachesis2")
 const SetSilmarilPower = artifacts.require("SetSilmarilPower")
+const MockWeth = artifacts.require('MockWeth1')
 
 const ironCrownABI = require('./ABI/IronCrown.json').abi
 
@@ -18,8 +19,8 @@ contract('IronCrown', async function (accounts) {
     before(async function () {
         this.powersRegistry = await PowersRegistry.new({ from: Melkor })
         await this.powersRegistry.seed()
-
-        this.scarcity = await MockScarcity.new({ from: Melkor })
+        this.mockWeth = await MockWeth.new({ from: Melkor })
+        this.scarcity = await MockScarcity.new(this.mockWeth.address, { from: Melkor })
         this.lachesis = await MockLachesis2.new({ from: Melkor })
         this.angband = await Angband.new(this.powersRegistry.address, { from: Melkor })
         this.angband.finalizeSetup({ from: Melkor });
@@ -141,20 +142,20 @@ contract('IronCrown', async function (accounts) {
     it('fails when unempowered user tries to withdraw scx from angband', async function () {
         await this.scarcity.mint(this.angband.address, '10000000000', { from: Melkor })
 
-        await expectRevert(this.angband.withdrawSCX('10000000000',{from:WitchKing}),"MORGOTH: forbidden power")
+        await expectRevert(this.angband.withdrawSCX('10000000000', { from: WitchKing }), "MORGOTH: forbidden power")
         await this.powersRegistry.bondUserToMinion(WitchKing, stringToBytes("Witchking"), { from: Melkor })
 
-         //Pour out TREASURER power 
-         await this.powersRegistry.create(stringToBytes('TREASURER'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
-         await this.powersRegistry.pour(stringToBytes('TREASURER'), stringToBytes('Witchking'), { from: Melkor })
- 
-         const recipientBalanceBefore =(await this.scarcity.balanceOf(WitchKing)).toString()
-         assert.equal(recipientBalanceBefore,"0")
-        
-         await this.angband.withdrawSCX('10000000000',{from:WitchKing})
-       
-         const recipientBalanceAfter =(await this.scarcity.balanceOf(WitchKing)).toString()
-         assert.equal(recipientBalanceAfter,"10000000000") 
+        //Pour out TREASURER power 
+        await this.powersRegistry.create(stringToBytes('TREASURER'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
+        await this.powersRegistry.pour(stringToBytes('TREASURER'), stringToBytes('Witchking'), { from: Melkor })
+
+        const recipientBalanceBefore = (await this.scarcity.balanceOf(WitchKing)).toString()
+        assert.equal(recipientBalanceBefore, "0")
+
+        await this.angband.withdrawSCX('10000000000', { from: WitchKing })
+
+        const recipientBalanceAfter = (await this.scarcity.balanceOf(WitchKing)).toString()
+        assert.equal(recipientBalanceAfter, "10000000000")
     })
 
 

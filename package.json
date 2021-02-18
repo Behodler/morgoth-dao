@@ -14,7 +14,7 @@
     "test:Powers": "npm test test/Powers.test.js",
     "test:IronCrown": "rm -rf build/contracts/* && truffle compile && cp build/contracts/IronCrown.json test/ABI/IronCrown.json && truffle test test/IronCrown.test.js",
     "test:AddToken": "rm -rf build/contracts/* && truffle test test/AddTokenToBehodler.test.js",
-    "test:zeppelin": "npm run test:Angband && npm run test:Migration && npm run test:Powers",
+    "test:zeppelin": "npm run test:Angband && npm run test:Migrator && npm run test:Powers",
     "test:all": "npm run test:zeppelin && cp build/contracts/IronCrown.json test/ABI/IronCrown.json && truffle test test/IronCrown.test.js && truffle test test/AddTokenToBehodler.test.js",
     "mocha": "mocha"
   },

@@ -211,16 +211,20 @@ describe('Migration', async function () {
         assert.equal(pyroWeiDaiBefore, '0x0000000000000000000000000000000000000000')
         assert.equal(pyroEyeBefore, '0x0000000000000000000000000000000000000000')
 
-        await this.migrator.step5()
+        await this.migrator.step5(2)
+        await this.migrator.step5(2)
+        await this.migrator.step5(4)
 
         const pyroToken1After = await this.liquidityReceiver.baseTokenMapping(this.token1.address)
         const pyroLoom1After = await this.liquidityReceiver.baseTokenMapping(this.oldLoom.address)
+        const pyroLoomNewAfter = await this.liquidityReceiver.baseTokenMapping(this.newLoom.address)
         const pyroToken3After = await this.liquidityReceiver.baseTokenMapping(this.token3.address)
         const pyroWeiDaiAfter = await this.liquidityReceiver.baseTokenMapping(this.weidai.address)
         const pyroEyeAfter = await this.liquidityReceiver.baseTokenMapping(this.eye.address)
 
         assert.notEqual(pyroToken1After, '0x0000000000000000000000000000000000000000')
-        assert.notEqual(pyroLoom1After, '0x0000000000000000000000000000000000000000')
+        assert.equal(pyroLoom1After, '0x0000000000000000000000000000000000000000')
+        assert.notEqual(pyroLoomNewAfter, '0x0000000000000000000000000000000000000000')
         assert.notEqual(pyroToken3After, '0x0000000000000000000000000000000000000000')
 
         assert.equal(pyroWeiDaiAfter, '0x0000000000000000000000000000000000000000')
