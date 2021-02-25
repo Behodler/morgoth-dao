@@ -180,7 +180,7 @@ contract Migrator {
     }
 
     function initBridge() public {
-        bridge = new ScarcityBridge(One.scarcity, Two.behodler, address(this));
+        bridge = new ScarcityBridge(One.scarcity, Two.behodler);
     }
 
     modifier step(uint8 _step) {
@@ -293,7 +293,7 @@ contract Migrator {
             uint256 scxGenerated =
                 behodler.buyScarcity(dummyTokens[step4Index], tokenBalance, 0);
             behodler.sellScarcity(baseTokens[step4Index], scxGenerated, 0);
-            bridge.collectScarcity1BeforeBurning(scxGenerated);
+           // bridge.collectScarcity1BeforeBurning(scxGenerated);
             lachesis.measure(dummyTokens[step4Index], false);
             lachesis.measure(baseTokens[step4Index], false);
         }

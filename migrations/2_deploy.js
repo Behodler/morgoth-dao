@@ -41,34 +41,15 @@ module.exports = async function (deployer, network, accounts) {
     console.log('FINALIZE ANGBAND')
     await angbandInstance.finalizeSetup(melkorOption)
     console.log('Creating power')
-    //empower melkor to wire angband and add tokens to behodler and map appropriate domains
-    await powersRegistryInstance.create(stringToBytes('ADD_TOKEN_TO_BEHODLER'), stringToBytes('LACHESIS'), true, false, { from: Melkor })
-    await powersRegistryInstance.pour(stringToBytes('ADD_TOKEN_TO_BEHODLER'), stringToBytes('Melkor'), { from: Melkor })
-    console.log('Creating power')
-    await powersRegistryInstance.create(stringToBytes('WIRE_ANGBAND'), stringToBytes('LACHESIS'), true, false, { from: Melkor })
-    await powersRegistryInstance.pour(stringToBytes('WIRE_ANGBAND'), stringToBytes('Melkor'), { from: Melkor })
-    console.log('Creating power')
-    await powersRegistryInstance.create(stringToBytes('POINT_TO_BEHODLER'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
-    await powersRegistryInstance.pour(stringToBytes('POINT_TO_BEHODLER'), stringToBytes('Melkor'), { from: Melkor })
-    console.log('Creating power')
-    //empower melkor to INSERT_SILMARIL
-    await powersRegistryInstance.create(stringToBytes('INSERT_SILMARIL'), stringToBytes('IRON_CROWN'), true, false, { from: Melkor })
-    await powersRegistryInstance.pour(stringToBytes('INSERT_SILMARIL'), stringToBytes('Melkor'), { from: Melkor })
-    console.log('Creating power')
-    await powersRegistryInstance.create(stringToBytes('AUTHORIZE_INVOKER'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
-    await powersRegistryInstance.pour(stringToBytes('AUTHORIZE_INVOKER'), stringToBytes('Melkor'), { from: Melkor })
-    console.log('Creating power')
-    await powersRegistryInstance.create(stringToBytes('TREASURER'), stringToBytes('ANGBAND'), true, false, { from: Melkor })
-    await powersRegistryInstance.pour(stringToBytes('TREASURER'), stringToBytes('Melkor'), { from: Melkor })
 
 
     const token = get('mock1Token')
     await deployer.deploy(NewLoom)
     const newLoomInstance = await NewLoom.deployed()
     console.log('TOKEN: ' + token)
-    await deployer.deploy(SetSilmarilPower, stringToBytes('INSERT_SILMARIL'), angbandInstance.address, melkorOption)
-    await deployer.deploy(AddTokenToBehodlerPower, token, true, stringToBytes('ADD_TOKEN_TO_BEHODLER'), angbandInstance.address, melkorOption)
-    await deployer.deploy(ConfigureScarcityPower, stringToBytes('CONFIGURE_SCARCITY'), angbandInstance.address, melkorOption)
+    await deployer.deploy(SetSilmarilPower, angbandInstance.address, melkorOption)
+    await deployer.deploy(AddTokenToBehodlerPower, token, true, angbandInstance.address, melkorOption)
+    await deployer.deploy(ConfigureScarcityPower, angbandInstance.address, melkorOption)
 
     const setSilamrilAddress = (await SetSilmarilPower.deployed()).address
     const addTokenToBehodlerAddress = (await AddTokenToBehodlerPower.deployed()).address

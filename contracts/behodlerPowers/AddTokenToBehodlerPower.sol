@@ -19,9 +19,8 @@ contract AddTokenToBehodlerPower is PowerInvoker {
     constructor(
         address _token,
         bool _burnable,
-        bytes32 _power,
         address _angband
-    ) PowerInvoker(_power, _angband) {
+    ) PowerInvoker("ADD_TOKEN_TO_BEHODLER", _angband) {
         token = _token;
         burnable = _burnable;
     }

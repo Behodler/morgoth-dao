@@ -4,29 +4,35 @@ import "../Powers.sol";
 
 abstract contract Scarcity {
     function configureScarcity(
-        uint transferFee,
-        uint burnFee,
+        uint256 transferFee,
+        uint256 burnFee,
         address feeDestination
     ) public virtual;
 }
 
 contract ConfigureScarcityPower is PowerInvoker {
-
-    uint transferFee;
-    uint burnFee;
+    uint256 transferFee;
+    uint256 burnFee;
     address feeDestination;
-    constructor (bytes32 _power, address _angband) PowerInvoker(_power,_angband) {}
 
-    function parameterize (uint _transferFee,uint _burnFee,address _feeDestination) public {
-            transferFee=_transferFee;
-            burnFee = _burnFee;
-            feeDestination = _feeDestination;
+    constructor(address _angband)
+        PowerInvoker("CONFIGURE_SCARCITY", _angband)
+    {}
+
+    function parameterize(
+        uint256 _transferFee,
+        uint256 _burnFee,
+        address _feeDestination
+    ) public {
+        transferFee = _transferFee;
+        burnFee = _burnFee;
+        feeDestination = _feeDestination;
     }
 
-    function orchestrate() internal override returns (bool){
+    function orchestrate() internal override returns (bool) {
         address scarcity = angband.getAddress(power.domain);
         Scarcity scx = Scarcity(scarcity);
-        scx.configureScarcity(transferFee,burnFee,feeDestination);
+        scx.configureScarcity(transferFee, burnFee, feeDestination);
         return true;
     }
 }

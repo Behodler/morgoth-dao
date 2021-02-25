@@ -18,8 +18,8 @@ contract SetSilmarilPower is PowerInvoker {
     }
     Parameters parameters;
 
-    constructor(bytes32 _power, address _angband)
-        PowerInvoker(_power, _angband)
+    constructor(address _angband)
+        PowerInvoker("INSERT_SILMARIL", _angband)
     {}
 
     function parameterize(
