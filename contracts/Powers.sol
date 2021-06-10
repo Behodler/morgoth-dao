@@ -1,7 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.1;
-import "./Angband.sol";
 import "./openzeppelin/Ownable.sol";
+
+
+abstract contract AngbandLike{
+    function getAddress(bytes32 _key) public virtual view returns (address); 
+    bytes32 public constant POWERREGISTRY = "POWERREGISTRY";
+    function setBehodler(address behodler, address lachesis) public virtual;
+
+}
 
 struct Power {
     bytes32 name;
@@ -15,11 +22,11 @@ abstract contract PowerInvoker {
 
     Power public power;
     PowersRegistry public registry;
-    Angband public angband;
+    AngbandLike public angband;
     bool invoked;
 
     constructor(bytes32 _power, address _angband) {
-        angband = Angband(_angband);
+        angband = AngbandLike(_angband);
         address _registry = angband.getAddress(angband.POWERREGISTRY());
         registry = PowersRegistry(_registry);
         (bytes32 name, bytes32 domain, bool transferrable, bool unique) =

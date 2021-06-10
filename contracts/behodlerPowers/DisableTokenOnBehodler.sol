@@ -3,25 +3,31 @@ pragma solidity ^0.7.1;
 import "../Powers.sol";
 import "./LachesisFacade.sol";
 
-contract AddTokenToBehodlerPower is PowerInvoker {
+abstract contract Lachesis {
+    function measure(
+        address token,
+        bool valid,
+        bool burnable
+    ) public virtual;
+
+    function updateBehodler(address token) public virtual;
+}
+
+contract DisableTokenOnBehodler is PowerInvoker {
     address token;
-    bool burnable;
 
     constructor(
         address _token,
-        bool _burnable,
         address _angband
     ) PowerInvoker("ADD_TOKEN_TO_BEHODLER", _angband) {
         token = _token;
-        burnable = _burnable;
     }
 
     function orchestrate() internal override returns (bool) {
         address _lachesis = angband.getAddress(power.domain);
         LachesisFacade lachesis = LachesisFacade(_lachesis);
-        lachesis.measure(token, true, burnable);
+        lachesis.measure(token, false, false);
         lachesis.updateBehodler(token);
-        
         return true;
     }
 }

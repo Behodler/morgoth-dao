@@ -2,7 +2,7 @@
 pragma solidity ^0.7.1;
 import "../Powers.sol";
 import "../openzeppelin/Ownable.sol";
-
+import "../Angband.sol";
 contract fakeOwner {
     address internal _owner;
     function owner() public view returns (address){

@@ -9,15 +9,15 @@ const NewLoom = artifacts.require('MockToken')
 
 const fs = require('fs')
 const redis = require('redis')
-const client = redis.createClient();
-client.on('error', console.log)
-const { promisify } = require("util");
-const get = promisify(client.get).bind(client);
+// const client = redis.createClient();
+// client.on('error', console.log)
+// const { promisify } = require("util");
+// const get = promisify(client.get).bind(client);
 const web3 = require('web3')
 const stringToBytes = (s) => web3.utils.fromAscii(s)
 
 module.exports = async function (deployer, network, accounts) {
-    const [Melkor, miningContract, devWallet] = accounts
+    /*const [Melkor, miningContract, devWallet] = accounts
     const behodler1 = await get('behodler1')
     const lachesis1 = await get('lachesis1')
     const scarcity1 = await get('scarcity1')
@@ -80,7 +80,7 @@ module.exports = async function (deployer, network, accounts) {
      await setSilmarilPowerInstance3.destruct({ from: Melkor })
  */
     //instantiate Migrator
-    console.log('getting weidai')
+   /* console.log('getting weidai')
     const weidai = await get('weidai')
     console.log('getting dai')
     const dai = await get('dai')
@@ -112,5 +112,5 @@ module.exports = async function (deployer, network, accounts) {
     }
     fs.writeFileSync('DevAddresses.json', JSON.stringify(addressBlock, null, 4))
     console.log('quitting')
-    client.quit()
+    client.quit()*/
 }

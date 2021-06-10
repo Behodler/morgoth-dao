@@ -35,5 +35,7 @@
     "mocha": "^8.2.0",
     "redis": "^3.0.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "truffle-flattener": "^1.5.0"
+  }
 }

@@ -6,10 +6,14 @@ import "../../openzeppelin/Ownable.sol";
 contract MockLachesis2 is Ownable {
     MockBehodler2 behodler;
 
-    mapping (address=>bool) burnable;
-    mapping(address=>bool) valid;
+    mapping(address => bool) burnable;
+    mapping(address => bool) valid;
 
-    function measure (address token, bool _valid, bool _burnable) public {
+    function measure(
+        address token,
+        bool _valid,
+        bool _burnable
+    ) public {
         burnable[token] = _burnable;
         valid[token] = _valid;
     }
@@ -18,7 +22,11 @@ contract MockLachesis2 is Ownable {
         behodler = MockBehodler2(_b);
     }
 
-    function updateBehodler (address token) public {
+    function updateBehodler(address token) public {
         behodler.setValidToken(token, valid[token], burnable[token]);
     }
- }
+
+    function cut(address token) public view returns (bool, bool) {
+        return (valid[token], burnable[token]);
+    }
+}

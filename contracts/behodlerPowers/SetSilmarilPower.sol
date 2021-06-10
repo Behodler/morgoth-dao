@@ -2,7 +2,7 @@
 pragma solidity ^0.7.1;
 import "../Powers.sol";
 
-interface IronCrownFacade {
+interface IronCrownFacade_Silmaril {
     function setSilmaril(
         uint8 index,
         uint16 percentage,
@@ -22,6 +22,12 @@ contract SetSilmarilPower is PowerInvoker {
         PowerInvoker("INSERT_SILMARIL", _angband)
     {}
 
+/**
+
+    uint8 public constant perpetualMining = 0; //liquid vault etc
+    uint8 public constant dev = 1;
+    uint8 public constant treasury = 2; //angband
+ */
     function parameterize(
         uint8 index,
         uint16 percentage,
@@ -33,8 +39,8 @@ contract SetSilmarilPower is PowerInvoker {
     }
 
     function orchestrate() internal override returns (bool) {
-        IronCrownFacade ironCrown =
-            IronCrownFacade(angband.getAddress(power.domain));
+        IronCrownFacade_Silmaril ironCrown =
+            IronCrownFacade_Silmaril(angband.getAddress(power.domain));
         ironCrown.setSilmaril(
             parameters.index,
             parameters.percentage,
