@@ -14,8 +14,9 @@
     "test:Powers": "npm test test/Powers.test.js",
     "test:IronCrown": "rm -rf build/contracts/* && truffle compile && cp build/contracts/IronCrown.json test/ABI/IronCrown.json && truffle test test/IronCrown.test.js",
     "test:AddToken": "rm -rf build/contracts/* && truffle test test/AddTokenToBehodler.test.js",
+    "test:LimboAddToken": "rm -rf build/contracts/* && truffle test test/LimboAddTokenToBehodler.test.js",
     "test:zeppelin": "npm run test:Angband && npm run test:Migrator && npm run test:Powers",
-    "test:all": "npm run test:zeppelin && cp build/contracts/IronCrown.json test/ABI/IronCrown.json && truffle test test/IronCrown.test.js && truffle test test/AddTokenToBehodler.test.js",
+    "test:all": "npm run test:zeppelin && cp build/contracts/IronCrown.json test/ABI/IronCrown.json && truffle test test/IronCrown.test.js && truffle test test/AddTokenToBehodler.test.js && truffle test test/LimboAddTokenToBehodler.test.js",
     "mocha": "mocha"
   },
   "repository": {
@@ -32,6 +33,7 @@
     "@openzeppelin/test-environment": "^0.1.6",
     "@openzeppelin/test-helpers": "^0.5.9",
     "chai": "^4.2.0",
+    "ganache-cli": "^6.12.2",
     "mocha": "^8.2.0",
     "redis": "^3.0.2"
   },

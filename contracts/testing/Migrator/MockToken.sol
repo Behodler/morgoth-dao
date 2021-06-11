@@ -8,6 +8,10 @@ contract MockToken {
     mapping(address => uint256) balances;
     mapping(address => mapping(address => uint256)) allowances;
 
+    constructor() {
+        mint(msg.sender, 1 ether);
+    }
+
     function setSupply(uint256 supply) public {
         _totalSupply = supply;
     }

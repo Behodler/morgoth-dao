@@ -3,36 +3,28 @@ pragma solidity ^0.7.1;
 import "../Powers.sol";
 import "./LachesisFacade.sol";
 import "../openzeppelin/IERC20.sol";
+import "../facades/BehodlerLike.sol";
 
-interface BehodlerLike {
-        function addLiquidity(address inputToken, uint256 amount)
-        external
-        virtual
-        payable
-        returns (uint256 deltaSCX)  ;
-}
 
 contract AddTokenAndValueToBehodlerPower is PowerInvoker {
     address token;
     bool burnable;
-    address behodler;
     address rewardContract;
 
     constructor(
         address _token,
         bool _burnable,
         address _angband,
-        address _rewardContract,
-        address _behodler
+        address _rewardContract
     ) PowerInvoker("ADD_TOKEN_TO_BEHODLER", _angband) {
         token = _token;
         burnable = _burnable;
-        behodler = _behodler;
         rewardContract = _rewardContract;
     }
 
     function orchestrate() internal override returns (bool) {
         address _lachesis = angband.getAddress(power.domain);
+        address behodler = angband.getAddress("BEHODLER");
         LachesisFacade lachesis = LachesisFacade(_lachesis);
         lachesis.measure(token, true, burnable);
         lachesis.updateBehodler(token);

@@ -56,15 +56,18 @@ contract MockBehodler2 is Ownable {
         return true;
     }
 
-    function addLiquidity(address inputToken, uint256 amount) public payable {
+    function addLiquidity(address inputToken, uint256 amount)
+        external
+        payable
+        returns (uint deltaSCX) {
         if (inputToken == Weth) {
             require(msg.value == amount);
             MockWeth1(Weth).deposit{value: amount}();
         } else {
-            ERC20(inputToken).transferFrom(msg.sender, address(this), amount);
+           // ERC20(inputToken).transferFrom(msg.sender, address(this), amount);
         }
-        balances[msg.sender] += amount * 2;
-        totalSupply += amount * 2;
+       balances[msg.sender] += amount * 2;
+       totalSupply += amount * 2;
     }
 
     function withdrawLiquidity(address outputToken, uint256 tokensToRelease)
