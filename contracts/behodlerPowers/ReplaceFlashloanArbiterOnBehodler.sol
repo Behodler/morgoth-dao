@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.1;
 import "../Powers.sol";
-import "./LachesisFacade.sol";
+import "../facades/LachesisLike.sol";
 
 abstract contract FlashLoanArbiter {
     function canBorrow (address borrower) public virtual returns (bool);

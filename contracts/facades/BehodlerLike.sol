@@ -1,9 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.1;
-interface BehodlerLike {
-        function addLiquidity(address inputToken, uint256 amount)
+import "../openzeppelin/IERC20.sol";
+
+interface BehodlerLike is IERC20 {
+    function addLiquidity(address inputToken, uint256 amount)
         external
-        virtual
         payable
-        returns (uint256 deltaSCX)  ;
+        returns (uint256 deltaSCX);
+
+    function withdrawLiquidityFindSCX(
+        address outputToken,
+        uint256 tokensToRelease,
+        uint256 scx,
+        uint256 passes
+    ) external view returns (uint256);
+
+    function setValidToken(
+        address token,
+        bool valid,
+        bool burnable
+    ) external;
 }

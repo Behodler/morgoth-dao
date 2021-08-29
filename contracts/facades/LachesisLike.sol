@@ -1,4 +1,7 @@
-abstract contract LachesisFacade {
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.7.1;
+
+abstract contract LachesisLike {
     function measure(
         address token,
         bool valid,
@@ -6,4 +9,6 @@ abstract contract LachesisFacade {
     ) public virtual;
 
     function updateBehodler(address token) public virtual;
+
+    function setBehodler(address b) public virtual;
 }

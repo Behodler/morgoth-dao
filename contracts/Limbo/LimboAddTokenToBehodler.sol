@@ -31,7 +31,7 @@ contract LimboAddTokenToBehodler is IdempotentPowerInvoker {
         address _lachesis = angband.getAddress(power.domain);
         address behodler = angband.getAddress("BEHODLER");
         require(params.soul!=address(0),"MORGOTH: PowerInvoker not parameterized.");
-        LachesisFacade lachesis = LachesisFacade(_lachesis);
+        LachesisLike lachesis = LachesisLike(_lachesis);
         lachesis.measure(params.soul, true, params.burnable);
         lachesis.updateBehodler(params.soul);
         uint256 balanceOfToken = IERC20(params.soul).balanceOf(address(this));

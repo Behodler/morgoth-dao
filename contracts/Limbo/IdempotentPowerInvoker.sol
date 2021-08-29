@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.1;
 import "../Powers.sol";
-import "../behodlerPowers/LachesisFacade.sol";
+import "../facades/LachesisLike.sol";
 import "../openzeppelin/IERC20.sol";
 
 abstract contract IdempotentPowerInvoker {

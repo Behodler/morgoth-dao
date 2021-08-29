@@ -3,31 +3,20 @@ pragma solidity ^0.7.1;
 import "../Powers.sol";
 import "../facades/LachesisLike.sol";
 
-abstract contract Lachesis {
-    function measure(
-        address token,
-        bool valid,
-        bool burnable
-    ) public virtual;
-
-    function updateBehodler(address token) public virtual;
-}
-
-contract DisableTokenOnBehodler is PowerInvoker {
-    address public token;
+contract SetBehodlerOnLachesisPower is PowerInvoker {
+    address behodler;
 
     constructor(
-        address _token,
+        address _behodler,
         address _angband
     ) PowerInvoker("ADD_TOKEN_TO_BEHODLER", _angband) {
-        token = _token;
+        behodler = _behodler;
     }
 
     function orchestrate() internal override returns (bool) {
         address _lachesis = angband.getAddress(power.domain);
         LachesisLike lachesis = LachesisLike(_lachesis);
-        lachesis.measure(token, false, false);
-        lachesis.updateBehodler(token);
+        lachesis.setBehodler(behodler);
         return true;
     }
 }

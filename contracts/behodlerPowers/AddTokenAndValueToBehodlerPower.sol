@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.1;
 import "../Powers.sol";
-import "./LachesisFacade.sol";
+import "../facades/LachesisLike.sol";
 import "../openzeppelin/IERC20.sol";
 import "../facades/BehodlerLike.sol";
 
@@ -25,7 +25,7 @@ contract AddTokenAndValueToBehodlerPower is PowerInvoker {
     function orchestrate() internal override returns (bool) {
         address _lachesis = angband.getAddress(power.domain);
         address behodler = angband.getAddress("BEHODLER");
-        LachesisFacade lachesis = LachesisFacade(_lachesis);
+        LachesisLike lachesis = LachesisLike(_lachesis);
         lachesis.measure(token, true, burnable);
         lachesis.updateBehodler(token);
         uint balanceOfToken = IERC20(token).balanceOf(address(this));

@@ -29,6 +29,7 @@ contract MockToken {
         returns (bool)
     {
         _transfer(msg.sender, recipient, amount);
+        return true;
     }
 
     function allowance(address owner, address spender)
@@ -53,11 +54,13 @@ contract MockToken {
             "ERC20: not approved to send"
         );
         _transfer(sender, recipient, amount);
+        return true;
     }
 
-    function mint(address recipient, uint256 amount) public {
+    function mint(address recipient, uint256 amount) public returns (bool){
         balances[recipient] = add(balances[recipient], amount);
         _totalSupply = add(_totalSupply, amount);
+        return true;
     }
 
     function burn(uint256 amount) public {
