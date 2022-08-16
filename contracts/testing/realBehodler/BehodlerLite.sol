@@ -1,7 +1,7 @@
 // File: contracts/openzeppelin/Ownable.sol
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.1;
+pragma solidity ^0.8.13;
 import "./CommonIERC20.sol";
 import "../../openzeppelin/Ownable.sol";
 

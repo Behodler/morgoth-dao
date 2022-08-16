@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.1;
+pragma solidity ^0.8.13;
 import "./IdempotentPowerInvoker.sol";
 import "../facades/BehodlerLike.sol";
 
@@ -36,7 +36,7 @@ contract LimboAddTokenToBehodler is IdempotentPowerInvoker {
         lachesis.updateBehodler(params.soul);
         uint256 balanceOfToken = IERC20(params.soul).balanceOf(address(this));
         require(balanceOfToken > 0, "MORGOTH: remember to seed contract");
-        IERC20(params.soul).approve(behodler, uint256(-1));
+        IERC20(params.soul).approve(behodler, type(uint).max);
         BehodlerLike(behodler).addLiquidity(params.soul, balanceOfToken);
         uint256 scxBal = IERC20(behodler).balanceOf(address(this));
         IERC20(behodler).transfer(params.limbo, scxBal);

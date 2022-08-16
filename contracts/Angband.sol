@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.1;
+pragma solidity ^0.8.13;
 import "./Powers.sol";
 import "./Thangorodrim.sol";
 import "./openzeppelin/Ownable.sol";
 import "./IronCrown.sol";
-import "./Behodler1Migration/ERC20.sol";
+import "./facades/IERC20.sol";
 
 contract Angband is Empowered, Thangorodrim {
     event EmergencyShutdownTriggered(address newOwner);
@@ -141,6 +141,6 @@ contract Angband is Empowered, Thangorodrim {
     {
         ironCrown.settlePayments();
         address scx = getAddress(BEHODLER);
-        ERC20(scx).transfer(msg.sender, amount);
+        IERC20(scx).transfer(msg.sender, amount);
     }
 }

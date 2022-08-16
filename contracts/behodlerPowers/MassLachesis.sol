@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.1;
-import "../testing/Migrator/MockLachesis2.sol";
+pragma solidity ^0.8.13;
+import "../facades/LachesisLike.sol";
 import "../openzeppelin/Ownable.sol";
 
 contract MassLachesis is Ownable {
-    MockLachesis2 lachesis;
+    LachesisLike lachesis;
     constructor(address _lachesis){
-        lachesis = MockLachesis2(_lachesis);
+        lachesis = LachesisLike(_lachesis);
     }
 
     function measureAll() public onlyOwner {

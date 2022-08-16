@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.1;
+pragma solidity ^0.8.13;
 import "../facades/BehodlerLike.sol";
 import "../openzeppelin/IERC20.sol";
 import "../facades/FlanLike.sol";
@@ -76,11 +76,12 @@ contract FlanGenesisRegisterFlan is PowerInvoker {
         lachesis.measure(address(params.flan), true, false);
         lachesis.updateBehodler(address(params.flan));
         params.flan.mint(address(this), daiBalanceOnBehodler);
-        params.flan.approve(address(params.scarcity), uint256(-1));
+        params.flan.approve(address(params.scarcity), type(uint).max);
         params.scarcity.addLiquidity(
             address(params.flan),
             daiBalanceOnBehodler
         );
+        //TODO: change 25 to SCX balance
         uint256 daiToSend = params.scarcity.withdrawLiquidityFindSCX(
             address(params.dai),
             1000,

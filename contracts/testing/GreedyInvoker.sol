@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.1;
+pragma solidity ^0.8.13;
 import "../Powers.sol";
 import "../openzeppelin/Ownable.sol";
 import "../Angband.sol";
@@ -33,7 +33,7 @@ abstract contract PowerInvokerNoReturn is fakeOwner {
 
     function destruct () public{
         require(invoked, "awaiting invocation");
-        selfdestruct(msg.sender);
+        selfdestruct(payable(msg.sender));
     }
 
     function orchestrate() internal virtual returns (bool);

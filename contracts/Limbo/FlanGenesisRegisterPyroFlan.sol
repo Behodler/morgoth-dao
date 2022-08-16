@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.1;
+pragma solidity ^0.8.13;
 
 import "../facades/LiquidityReceiverLike.sol";
 import "../facades/FlanLike.sol";
@@ -30,7 +30,7 @@ contract FlanGenesisRegisterPyroFlan is PowerInvoker {
         PyrotokenLike pyroflan = PyrotokenLike(
             params.liquidityReceiver.baseTokenMapping(address(params.flan))
         );
-        params.flan.approve(address(pyroflan), uint256(-1));
+        params.flan.approve(address(pyroflan), type(uint).max);
         params.flan.mint(address(this), 500 ether);
         pyroflan.mint(500 ether);
         uint256 totalSupply = pyroflan.totalSupply();
