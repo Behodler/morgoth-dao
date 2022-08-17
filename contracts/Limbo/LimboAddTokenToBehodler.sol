@@ -33,7 +33,7 @@ contract LimboAddTokenToBehodler is IdempotentPowerInvoker {
     }
 
     function orchestrate() internal override returns (bool) {
-        Parameters memory localParams;
+        Parameters memory localParams =params;
         address _lachesis = angband.getAddress(power.domain);
         address Scarcity = angband.getAddress("BEHODLER");
         require(
